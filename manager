@@ -54,12 +54,13 @@ def django_environ(testing=False):
 
 
 @django_environ(testing=True)
-def runtests():
-    pytest.main("--capture=no tests")
+def runtests(argv):
+    options = " ".join(argv)
+    pytest.main("--capture=no tests " + options)
 
 
 @django_environ()
-def runserver():
+def runserver(argv):
     from django.core.management import execute_from_command_line
     execute_from_command_line(['manage.py', 'runserver'])
 
@@ -71,4 +72,4 @@ def cleanup():
 
 
 if __name__ == '__main__':
-    globals()[sys.argv[1]]()
+    globals()[sys.argv[1]](sys.argv[2:])

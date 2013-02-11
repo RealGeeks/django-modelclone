@@ -67,12 +67,17 @@ class ClonableModelAdmin(ModelAdmin):
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
                 initial = []
-                for obj in inline.queryset(request):
-                    obj_fk = _get_foreign_key(type(original_obj), type(obj))
+                queryset = inline.queryset(request).filter(
+                    **{FormSet.fk.name: original_obj})
+                for obj in queryset:
                     initial.append(model_to_dict(obj, exclude=[obj._meta.pk.name,
-                                                               obj_fk.name]))
-                formset = FormSet(instance=self.model(), prefix=prefix,
-                                  initial=initial)
+                                                               FormSet.fk.name]))
+                formset = FormSet(prefix=prefix, initial=initial)
+                # since there is no way to customize the `extra` in the constructor,
+                # construct the forms again...
+                # most of this view is a hack, but this is the ugliest one
+                formset.extra = len(initial) + formset.extra
+                formset._construct_forms()
                 formsets.append(formset)
 
         admin_form = helpers.AdminForm(

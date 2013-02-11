@@ -7,6 +7,7 @@ from .models import Post, Comment
 
 class CommentInline(admin.StackedInline):
     model = Comment
+    extra = 2
 
 class PostAdmin(ClonableModelAdmin):
     inlines = CommentInline,

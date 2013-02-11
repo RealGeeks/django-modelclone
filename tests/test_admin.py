@@ -7,32 +7,62 @@ from sampleproject.posts.models import Post, Comment
 class ClonableModelAdminTests(WebTest):
 
     def setUp(self):
-        User.objects.create_superuser(username='admin',
-                                      password='admin',
-                                      email='admin@sampleproject.com')
+        User.objects.create_superuser(
+            username='admin',
+            password='admin',
+            email='admin@sampleproject.com'
+        )
+
         self.post = Post.objects.create(
+            title = 'How to learn windsurf',
+            content = 'Practice a lot!',
+        )
+
+        self.post_with_comments = Post.objects.create(
             title = 'How to learn Django',
             content = 'Read https://docs.djangoproject.com/'
         )
-        comment1 = Comment.objects.create(
+        Comment.objects.create(
             author = 'Bob',
             content = 'Thanks! It really helped',
-            post = self.post
+            post = self.post_with_comments
         )
-        comment2 = Comment.objects.create(
+        Comment.objects.create(
             author = 'Alice',
             content = 'Oh, really?!',
-            post = self.post
+            post = self.post_with_comments
         )
-        self.post_clone_url = '/admin/posts/post/{0}/clone/'.format(self.post.id)
+
+        self.post_url = '/admin/posts/post/{0}/clone/'.format(
+            self.post.id)
+        self.post_with_comments_url = '/admin/posts/post/{0}/clone/'.format(
+            self.post_with_comments.id)
 
 
-    def test_clone_should_pre_fill_all_form_fields_on_GET(self):
-        response = self.app.get(self.post_clone_url, user='admin')
+    # clone object
+
+    def test_clone_should_pre_fill_all_form_fields(self):
+        response = self.app.get(self.post_url, user='admin')
 
         # post
-        assert_input(response, name='title', value='How to learn Django')
-        assert_input(response, name='content', value='Read https://docs.djangoproject.com/')
+        assert_input(response, name='title', value='How to learn windsurf')
+        assert_input(response, name='content', value='Practice a lot!')
+
+        # csrf
+        assert_input(response, name='csrfmiddlewaretoken')
+
+
+    def test_clone_should_create_new_object_on_POST(self):
+        response = self.app.get(self.post_url, user='admin')
+        response.form.submit()
+
+        assert 2 == Post.objects.filter(title=self.post.title).count()
+
+
+    # clone object with inlines
+
+    def test_clone_should_pre_fill_all_form_fields_including_inlines_on_GET(self):
+        response = self.app.get(self.post_with_comments_url, user='admin')
 
         # comment 1
         assert_input(response, name='comment_set-0-author', value='Bob')
@@ -46,25 +76,41 @@ class ClonableModelAdminTests(WebTest):
         assert_input(response, name='comment_set-1-id', value='')
         assert_input(response, name='comment_set-1-post', value='')
 
-        # csrf
-        assert_input(response, name='csrfmiddlewaretoken')
-
         # management form data
-        assert_input(response, name='comment_set-TOTAL_FORMS', value=3)
-        assert_input(response, name='comment_set-INITIAL_FORMS', value=0)
-        assert_input(response, name='comment_set-MAX_NUM_FORMS', value='')
+        assert_management_form_inputs(response, total=3, initial=0, max_num='')
 
 
-    def test_clone_should_create_new_objects_on_POST(self):
-        response = self.app.get(self.post_clone_url, user='admin')
+    def test_clone_with_inlines_should_display_the_necessary_number_of_forms(self):
+        extra = 2   # CommentInline.extra on sampleproject/posts
+
+        for i in range(4):
+            Comment.objects.create(
+                author = 'Author ' + str(i),
+                content = 'Content ' + str(i),
+                post = self.post,
+            )
+
+        response = self.app.get(self.post_url, user='admin')
+
+        for i in range(4):
+            i = str(i)
+            assert_input(response, name='comment_set-'+i+'-author', value='Author ' + i)
+            assert_input(response, name='comment_set-'+i+'-content', value='Content ' + i)
+            assert_input(response, name='comment_set-'+i+'-id', value='')
+            assert_input(response, name='comment_set-'+i+'-post', value='')
+
+        assert_management_form_inputs(response, total=4+extra, initial=0, max_num='')
+
+
+    def test_clone_should_create_new_object_with_inlines_on_POST(self):
+        response = self.app.get(self.post_with_comments_url, user='admin')
         response.form.submit()
 
-        assert 2 == Post.objects.count()
-
-        post1, post2 = Post.objects.all()
+        post1, post2 = Post.objects.filter(title=self.post_with_comments.title)
 
         assert 2 == post1.comment_set.count()
         assert 2 == post2.comment_set.count()
+
 
 
 # asserts
@@ -104,3 +150,9 @@ def assert_input(response, name, value=None):
     assert found_value == str(value), 'Expected value="{0}" for field "{1}", found "{2}"'.format(
         value, name, found_value)
 
+
+
+def assert_management_form_inputs(response, total, initial, max_num):
+    assert_input(response, name='comment_set-TOTAL_FORMS', value=total)
+    assert_input(response, name='comment_set-INITIAL_FORMS', value=initial)
+    assert_input(response, name='comment_set-MAX_NUM_FORMS', value=max_num)
