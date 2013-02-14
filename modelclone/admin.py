@@ -94,7 +94,7 @@ class ClonableModelAdmin(ModelAdmin):
             fieldsets = list(inline.get_fieldsets(request, original_obj))
             readonly = list(inline.get_readonly_fields(request, original_obj))
             prepopulated = dict(inline.get_prepopulated_fields(request, original_obj))
-            inline_admin_formset = helpers.InlineAdminFormSet(inline, formset,
+            inline_admin_formset = InlineAdminFormSetFakeOriginal(inline, formset,
                 fieldsets, prepopulated, readonly, model_admin=self)
             inline_admin_formsets.append(inline_admin_formset)
             media = media + inline_admin_formset.media
@@ -102,7 +102,7 @@ class ClonableModelAdmin(ModelAdmin):
         context = {
             'title': _('Duplicate {0}'.format(force_text(opts.verbose_name))),
             'adminform': admin_form,
-#            'original': original_obj,
+            'original': None,
             'is_popup': "_popup" in request.REQUEST,
             'show_delete': False,
             'media': media,
@@ -118,3 +118,19 @@ class ClonableModelAdmin(ModelAdmin):
             change=True
         )
 
+class InlineAdminFormSetFakeOriginal(helpers.InlineAdminFormSet):
+
+    def __iter__(self):
+        # the template requires the AdminInlineForm to have an `original`
+        # attribute, which is the model instance, in order to display the
+        # 'Delete' checkbox
+        # we don't have `original` because we are just providing initial
+        # data to the form, so we attach a "fake original" (something that
+        # evaluates to True) to fool the template and make is display
+        # the 'Delete' checkbox
+        # needless to say this is a terrible hack and will break in future
+        # django versions :)
+        for inline_form in super(InlineAdminFormSetFakeOriginal, self).__iter__():
+            if inline_form.form.initial:
+                inline_form.original = True
+            yield inline_form

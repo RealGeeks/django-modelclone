@@ -64,20 +64,36 @@ class ClonableModelAdminTests(WebTest):
     def test_clone_should_pre_fill_all_form_fields_including_inlines_on_GET(self):
         response = self.app.get(self.post_with_comments_url, user='admin')
 
+        # management form data
+        assert_management_form_inputs(response, total=4, initial=0, max_num='')
+
         # comment 1
         assert_input(response, name='comment_set-0-author', value='Bob')
         assert_input(response, name='comment_set-0-content', value='Thanks! It really helped')
         assert_input(response, name='comment_set-0-id', value='')
         assert_input(response, name='comment_set-0-post', value='')
+        assert_input(response, name='comment_set-0-DELETE', value='')
 
         # comment 2
         assert_input(response, name='comment_set-1-author', value='Alice')
         assert_input(response, name='comment_set-1-content', value='Oh, really?!')
         assert_input(response, name='comment_set-1-id', value='')
         assert_input(response, name='comment_set-1-post', value='')
+        assert_input(response, name='comment_set-1-DELETE', value='')
 
-        # management form data
-        assert_management_form_inputs(response, total=3, initial=0, max_num='')
+        # first extra
+        assert_input(response, name='comment_set-2-author', value='')
+        assert_input(response, name='comment_set-2-content', value='')
+        assert_input(response, name='comment_set-2-id', value='')
+        assert_input(response, name='comment_set-2-post', value='')
+        refute_input(response, name='comment_set-2-DELETE')
+
+        # second extra
+        assert_input(response, name='comment_set-3-author', value='')
+        assert_input(response, name='comment_set-3-content', value='')
+        assert_input(response, name='comment_set-3-id', value='')
+        assert_input(response, name='comment_set-3-post', value='')
+        refute_input(response, name='comment_set-3-DELETE')
 
 
     def test_clone_with_inlines_should_display_the_necessary_number_of_forms(self):
@@ -112,6 +128,15 @@ class ClonableModelAdminTests(WebTest):
         assert 2 == post2.comment_set.count()
 
 
+    def test_clone_should_ignore_initial_data_of_inline_form_if_delete_is_checked(self):
+        response = self.app.get(self.post_with_comments_url, user='admin')
+        response.form.set('comment_set-0-DELETE', 'on')  # delete first comment
+        response.form.submit()
+
+        cloned_post = Post.objects.latest('id')
+
+        assert 1 == cloned_post.comment_set.count()
+
 
 # asserts
 
@@ -121,9 +146,7 @@ def assert_input(response, name, value=None):
 
     If value is not None, assert the input value is ``value``
     '''
-    field = response.lxml.cssselect('input[name={0}]'.format(name))
-    if len(field) == 0:
-        field = response.lxml.cssselect('textarea[name={0}]'.format(name))
+    field = cssselect_input_or_textarea(response, name)
 
     if len(field) == 0:
         assert 0, 'No field found with name "{0}"'.format(name)
@@ -150,7 +173,21 @@ def assert_input(response, name, value=None):
     assert found_value == str(value), 'Expected value="{0}" for field "{1}", found "{2}"'.format(
         value, name, found_value)
 
+def refute_input(response, name):
+    '''
+    Make sure input with ``name`` doesn't exist in ``response``
 
+    '''
+    field = cssselect_input_or_textarea(response, name)
+
+    if len(field) > 0:
+        assert 0, 'Expected no fields with name "{0}", found {1}'.format(name, len(field))
+
+def cssselect_input_or_textarea(response, name):
+    field = response.lxml.cssselect('input[name={0}]'.format(name))
+    if len(field) == 0:
+        field = response.lxml.cssselect('textarea[name={0}]'.format(name))
+    return field
 
 def assert_management_form_inputs(response, total, initial, max_num):
     assert_input(response, name='comment_set-TOTAL_FORMS', value=total)
