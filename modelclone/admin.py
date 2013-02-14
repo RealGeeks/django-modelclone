@@ -10,6 +10,8 @@ __all__ = 'ClonableModelAdmin',
 
 class ClonableModelAdmin(ModelAdmin):
 
+    clone_verbose_name = _('Duplicate')
+
     def get_urls(self):
         new_urlpatterns = patterns('',
             url(r'^(.+)/clone/',
@@ -99,10 +101,11 @@ class ClonableModelAdmin(ModelAdmin):
             inline_admin_formsets.append(inline_admin_formset)
             media = media + inline_admin_formset.media
 
+
         context = {
-            'title': _('Duplicate {0}'.format(force_text(opts.verbose_name))),
+            'title': self.clone_verbose_name,
+            'original': self.clone_verbose_name,
             'adminform': admin_form,
-            'original': None,
             'is_popup': "_popup" in request.REQUEST,
             'show_delete': False,
             'media': media,

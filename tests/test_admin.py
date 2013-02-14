@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django_webtest import WebTest
 
 from sampleproject.posts.models import Post, Comment
+from modelclone import ClonableModelAdmin
 
 
 class ClonableModelAdminTests(WebTest):
@@ -38,6 +39,16 @@ class ClonableModelAdminTests(WebTest):
         self.post_with_comments_url = '/admin/posts/post/{0}/clone/'.format(
             self.post_with_comments.id)
 
+    def test_clone_should_display_clone_verbose_name_as_title(self):
+        response = self.app.get(self.post_url, user='admin')
+
+        # default value
+        assert 'Duplicate' == ClonableModelAdmin.clone_verbose_name
+
+        # customized value in sampleproject/posts/admin.py
+        assert_page_title(response, 'Clone it! | Django site admin')
+        assert_content_title(response, 'Clone it!')
+        assert_breadcrums_title(response, 'Clone it!')
 
     # clone object
 
@@ -182,6 +193,20 @@ def refute_input(response, name):
 
     if len(field) > 0:
         assert 0, 'Expected no fields with name "{0}", found {1}'.format(name, len(field))
+
+def assert_page_title(response, title):
+    elem = response.lxml.cssselect('title')
+    assert elem[0].text_content().strip() == title
+
+def assert_content_title(response, title):
+    elem = response.lxml.cssselect('#content h1')
+    assert len(elem) > 0, 'No titles found in content'
+    assert elem[0].text_content().strip() == title
+
+def assert_breadcrums_title(response, title):
+    elem = response.lxml.cssselect('.breadcrumbs')
+    assert len(elem) > 0, 'No .breadcrumbs found'
+    assert title in elem[0].text_content()
 
 def cssselect_input_or_textarea(response, name):
     field = response.lxml.cssselect('input[name={0}]'.format(name))

@@ -11,6 +11,7 @@ class CommentInline(admin.StackedInline):
 
 class PostAdmin(ClonableModelAdmin):
     inlines = CommentInline,
+    clone_verbose_name = 'Clone it!'
 
 
 admin.site.register(Post, PostAdmin)
