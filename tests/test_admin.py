@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django_webtest import WebTest
 
+import mock
+
 from sampleproject.posts.models import Post, Comment
 from modelclone import ClonableModelAdmin
 
@@ -38,6 +40,16 @@ class ClonableModelAdminTests(WebTest):
             self.post.id)
         self.post_with_comments_url = '/admin/posts/post/{0}/clone/'.format(
             self.post_with_comments.id)
+
+    def test_clone_view_is_wrapped_as_admin_view(self):
+        model = mock.Mock()
+        admin_site = mock.Mock()
+        admin_site.admin_view.return_value = '<wrapped clone view>'
+
+        model_admin = ClonableModelAdmin(model, admin_site)
+        clone_view_urlpattern = model_admin.get_urls()[0]
+
+        assert '<wrapped clone view>' == clone_view_urlpattern.callback
 
     def test_clone_should_display_clone_verbose_name_as_title(self):
         response = self.app.get(self.post_url, user='admin')

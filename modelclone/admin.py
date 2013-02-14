@@ -15,7 +15,7 @@ class ClonableModelAdmin(ModelAdmin):
     def get_urls(self):
         new_urlpatterns = patterns('',
             url(r'^(.+)/clone/',
-                self.clone_view),
+                self.admin_site.admin_view(self.clone_view)),
         )
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
         return new_urlpatterns + original_urlpatterns
