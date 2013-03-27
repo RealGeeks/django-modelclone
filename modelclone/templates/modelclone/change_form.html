@@ -1,6 +1,8 @@
 {% extends "admin/change_form.html" %}
 
 {% block object-tools-items %}
-    <li><a href="clone/">{{ clone_verbose_name }}</a></li>
+    {% if include_clone_link %}
+        <li><a href="clone/">{{ clone_verbose_name }}</a></li>
+    {% endif %}
     {{ block.super }}
 {% endblock %}

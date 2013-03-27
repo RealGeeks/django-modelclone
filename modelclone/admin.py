@@ -23,7 +23,10 @@ class ClonableModelAdmin(ModelAdmin):
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        extra_context['clone_verbose_name'] = self.clone_verbose_name
+        extra_context.update({
+            'clone_verbose_name': self.clone_verbose_name,
+            'include_clone_link': True,
+        })
         return super(ClonableModelAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def clone_view(self, request, object_id, form_url='', extra_context=None):
