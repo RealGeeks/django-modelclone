@@ -5,6 +5,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
 from django.forms.models import _get_foreign_key, model_to_dict
 from django.forms.formsets import all_valid
+from django.core.urlresolvers import reverse
 
 __all__ = 'ClonableModelAdmin',
 
@@ -13,10 +14,27 @@ class ClonableModelAdmin(ModelAdmin):
     clone_verbose_name = _('Duplicate')
     change_form_template = 'modelclone/change_form.html'
 
+    def clone_link(self, clonable_model):
+        '''
+        Method to be used on `list_display`, renders a link to clone model
+        '''
+        url = reverse('admin:{0}_{1}_clone'.format(clonable_model._meta.app_label,
+                                                   clonable_model._meta.module_name),
+                      args=(clonable_model._get_pk_val(),),
+                      current_app=self.admin_site.name)
+        return '<a href="{0}">{1}</a>'.format(url, self.clone_verbose_name)
+
+    clone_link.short_description = clone_verbose_name  # not overridable by subclass
+    clone_link.allow_tags = True
+
     def get_urls(self):
+        url_name = '{0}_{1}_clone'.format(
+            self.model._meta.app_label,
+            self.model._meta.module_name)   # NOTE: Django 1.5 uses model_name here
         new_urlpatterns = patterns('',
-            url(r'^(.+)/clone/',
-                self.admin_site.admin_view(self.clone_view)),
+            url(r'^(.+)/clone/$',
+                self.admin_site.admin_view(self.clone_view),
+                name=url_name)
         )
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
         return new_urlpatterns + original_urlpatterns

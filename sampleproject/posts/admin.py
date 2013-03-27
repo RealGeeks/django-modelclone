@@ -13,5 +13,7 @@ class PostAdmin(ClonableModelAdmin):
     inlines = CommentInline,
     clone_verbose_name = 'Clone it!'
 
+    list_display = '__unicode__', 'clone_link'
+
 
 admin.site.register(Post, PostAdmin)

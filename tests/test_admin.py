@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
-from django_webtest import WebTest
+from django.contrib.admin import site as default_admin_site
+from django.core.urlresolvers import reverse
 
+from django_webtest import WebTest
 import mock
 
 from sampleproject.posts.models import Post, Comment
@@ -50,6 +52,25 @@ class ClonableModelAdminTests(WebTest):
         clone_view_urlpattern = model_admin.get_urls()[0]
 
         assert '<wrapped clone view>' == clone_view_urlpattern.callback
+
+    def test_clone_view_url_name(self):
+        post_id = self.post.id
+        expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
+
+        assert reverse('admin:posts_post_clone', args=(post_id,)) == expected_url
+
+    def test_clone_link_method_for_list_display_renders_object_clone_url(self):
+        model_admin = ClonableModelAdmin(Post, default_admin_site)
+        expected_link = '<a href="{0}">{1}</a>'.format(
+            reverse('admin:posts_post_clone', args=(self.post.id,)),
+            model_admin.clone_verbose_name)
+
+        assert model_admin.clone_link(self.post) == expected_link
+
+    def test_clone_link_methods_for_list_display_should_allow_tags_and_have_short_description(self):
+        assert ClonableModelAdmin.clone_link.allow_tags is True
+        assert ClonableModelAdmin.clone_link.short_description == \
+               ClonableModelAdmin.clone_verbose_name
 
     def test_clone_should_display_clone_verbose_name_as_title(self):
         response = self.app.get(self.post_url, user='admin')
