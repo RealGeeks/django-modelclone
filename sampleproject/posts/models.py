@@ -5,7 +5,7 @@ class Post(models.Model):
     content = models.TextField(blank=True)
 
     def __unicode__(self):
-        return self.title
+        return u'Post: {0}'.format(self.title)
 
 
 class Comment(models.Model):
@@ -15,4 +15,3 @@ class Comment(models.Model):
 
     def __unicode__(self):
         return u'Comment on {0} by {1}'.format(self.post, self.author)
-
