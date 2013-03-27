@@ -11,6 +11,7 @@ __all__ = 'ClonableModelAdmin',
 class ClonableModelAdmin(ModelAdmin):
 
     clone_verbose_name = _('Duplicate')
+    change_form_template = 'modelclone/change_form.html'
 
     def get_urls(self):
         new_urlpatterns = patterns('',
@@ -19,6 +20,11 @@ class ClonableModelAdmin(ModelAdmin):
         )
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
         return new_urlpatterns + original_urlpatterns
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['clone_verbose_name'] = self.clone_verbose_name
+        return super(ClonableModelAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def clone_view(self, request, object_id, form_url='', extra_context=None):
         opts = self.model._meta
