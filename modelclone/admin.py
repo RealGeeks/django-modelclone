@@ -129,9 +129,10 @@ class ClonableModelAdmin(ModelAdmin):
             media = media + inline_admin_formset.media
 
 
+        title = u'{0} {1}'.format(self.clone_verbose_name, opts.verbose_name)
         context = {
-            'title': self.clone_verbose_name,
-            'original': self.clone_verbose_name,
+            'title': title,
+            'original': title,
             'adminform': admin_form,
             'is_popup': "_popup" in request.REQUEST,
             'show_delete': False,

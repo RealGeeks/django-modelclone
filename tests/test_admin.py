@@ -79,9 +79,9 @@ class ClonableModelAdminTests(WebTest):
         assert 'Duplicate' == ClonableModelAdmin.clone_verbose_name
 
         # customized value in sampleproject/posts/admin.py
-        assert_page_title(response, 'Clone it! | Django site admin')
-        assert_content_title(response, 'Clone it!')
-        assert_breadcrums_title(response, 'Clone it!')
+        assert_page_title(response, 'Clone it! post | Django site admin')
+        assert_content_title(response, 'Clone it! post')
+        assert_breadcrums_title(response, 'Clone it! post')
 
     # clone object
 
