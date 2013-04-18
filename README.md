@@ -27,8 +27,8 @@ object.
 
 I don't like the way this feature works because you will save an identical copy of the
 original object (if you don't get validation errors) as soon as you click that link, and
-while you don't make the small changes that you want in the new object you have an indentical
-copy in your database, that might not be what you expected.
+if you forget to make the small changes that you wanted in the new object you will end up 
+with a duplicate of the existing object.
 
 On the other hand, django-modelclone offers an intermediate view, that basically pre-fills
 the form for you. So you can modify and then save a new instance. Or just go away without
@@ -40,7 +40,7 @@ Tested with Python 2.6 and 2.7. Django 1.4.
 
 ## Hacking
 
-Fork the [repository on github](http://github.com/realgeeks/django-modelclone), make yours
+Fork the [repository on github](http://github.com/realgeeks/django-modelclone), make your
 changes (don't forget the tests) and send a pull request.
 
 Inside your fork directory run:
