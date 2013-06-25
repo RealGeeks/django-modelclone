@@ -1,11 +1,14 @@
 from django.contrib.admin import ModelAdmin, helpers
 from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
-from django.utils.encoding import force_text
+from django.utils.encoding import force_text, force_unicode
 from django.utils.translation import ugettext as _
+from django.utils.html import escape
 from django.forms.models import _get_foreign_key, model_to_dict
 from django.forms.formsets import all_valid
 from django.core.urlresolvers import reverse
+from django.http import Http404
+
 
 __all__ = 'ClonableModelAdmin',
 
@@ -51,6 +54,12 @@ class ClonableModelAdmin(ModelAdmin):
         opts = self.model._meta
 
         original_obj = self.get_object(request, unquote(object_id))
+
+        if original_obj is None:
+            raise Http404(_('{name} object with primary key {key} does not exist.'.format(
+                name=force_unicode(opts.verbose_name),
+                key=repr(escape(object_id))
+            )))
 
         ModelForm = self.get_form(request)
         formsets = []

@@ -103,6 +103,11 @@ class ClonableModelAdminTests(WebTest):
         assert 2 == Post.objects.filter(title=self.post.title).count()
 
 
+    def test_clone_should_return_404_if_object_does_not_exist(self):
+        response = self.app.get('/admin/posts/post/999999999/clone/', user='admin',
+                                expect_errors=True)
+        assert 404 == response.status_code
+
     # clone object with inlines
 
     def test_clone_should_pre_fill_all_form_fields_including_inlines_on_GET(self):
