@@ -7,6 +7,7 @@ from django.utils.html import escape
 from django.forms.models import _get_foreign_key, model_to_dict
 from django.forms.formsets import all_valid
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 from django.http import Http404
 
 
@@ -52,6 +53,9 @@ class ClonableModelAdmin(ModelAdmin):
 
     def clone_view(self, request, object_id, form_url='', extra_context=None):
         opts = self.model._meta
+
+        if not self.has_add_permission(request):
+            raise PermissionDenied
 
         original_obj = self.get_object(request, unquote(object_id))
 

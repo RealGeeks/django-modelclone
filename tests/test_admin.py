@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User
 from django.contrib.admin import site as default_admin_site
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 
 from django_webtest import WebTest
 import mock
+import pytest
 
 from sampleproject.posts.models import Post, Comment
 from modelclone import ClonableModelAdmin
@@ -82,6 +84,18 @@ class ClonableModelAdminTests(WebTest):
         assert_page_title(response, 'Clone it! post | Django site admin')
         assert_content_title(response, 'Clone it! post')
         assert_breadcrums_title(response, 'Clone it! post')
+
+    def test_clone_should_raise_permission_denied(self):
+        model_admin = ClonableModelAdmin(Post, default_admin_site)
+        model_admin.has_add_permission = mock.Mock(return_value=False)
+
+        request = object()
+        object_id = object()
+
+        with pytest.raises(PermissionDenied):
+            model_admin.clone_view(request, object_id)
+
+        model_admin.has_add_permission.assert_called_once_with(request)
 
     # clone object
 
