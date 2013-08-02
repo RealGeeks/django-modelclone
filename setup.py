@@ -12,6 +12,9 @@ setup(
     packages = [
         'modelclone',
     ],
+    package_data = {
+        'modelclone': ['templates/modelclone/*'],
+    },
     author = "Igor Sobreira",
     author_email = "igor@realgeeks.com",
     classifiers = [
