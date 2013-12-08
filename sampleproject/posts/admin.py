@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from modelclone import ClonableModelAdmin
 
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 
 
 class CommentInline(admin.StackedInline):
@@ -17,3 +17,4 @@ class PostAdmin(ClonableModelAdmin):
 
 
 admin.site.register(Post, PostAdmin)
+admin.site.register(Tag)

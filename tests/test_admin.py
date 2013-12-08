@@ -7,7 +7,7 @@ from django_webtest import WebTest
 import mock
 import pytest
 
-from sampleproject.posts.models import Post, Comment
+from sampleproject.posts.models import Post, Comment, Tag
 from modelclone import ClonableModelAdmin
 
 
@@ -19,6 +19,8 @@ class ClonableModelAdminTests(WebTest):
             password='admin',
             email='admin@sampleproject.com'
         )
+        self.tag1 = Tag.objects.create(name='django')
+        self.tag2 = Tag.objects.create(name='sports')
 
         self.post = Post.objects.create(
             title = 'How to learn windsurf',
@@ -40,10 +42,17 @@ class ClonableModelAdminTests(WebTest):
             post = self.post_with_comments
         )
 
+        self.post_with_tags = Post.objects.create(
+            title = 'Django resable apps',
+        )
+        self.post_with_tags.tags.add(self.tag1)
+
         self.post_url = '/admin/posts/post/{0}/clone/'.format(
             self.post.id)
         self.post_with_comments_url = '/admin/posts/post/{0}/clone/'.format(
             self.post_with_comments.id)
+        self.post_with_tags_url = '/admin/posts/post/{0}/clone/'.format(
+            self.post_with_tags.id)
 
     def test_clone_view_is_wrapped_as_admin_view(self):
         model = mock.Mock()
@@ -201,6 +210,40 @@ class ClonableModelAdminTests(WebTest):
         assert 1 == cloned_post.comment_set.count()
 
 
+    def test_clone_with_m2m_fields_should_prefill_m2m_fields(self):
+        response = self.app.get(self.post_with_tags_url, user='admin')
+
+        tag1_option = select_element(response, 'select[name=tags] option[value="{id}"]'
+            .format(id=self.tag1.id))
+        tag2_option = select_element(response, 'select[name=tags] option[value="{id}"]'
+            .format(id=self.tag2.id))
+
+        assert tag1_option.get('selected')
+        assert not tag2_option.get('selected')
+
+
+    def test_clone_with_m2m_fields_should_keep_modified_m2m_field_values_after_validation_error(self):
+        response = self.app.get(self.post_with_tags_url, user='admin')
+
+        # original post has tag1 selected and tag2 disabled. will disable tag1
+        # and select tag2.
+        #
+        # with a blank title the page will return a validation error, should keep
+        # my selected options
+        response.form.set('title', '')
+        response.form.set('tags', [self.tag2.id])
+        response = response.form.submit()
+
+        assert 'Please correct the error below' in response.content
+
+        tag1_option = select_element(response, 'select[name=tags] option[value="{id}"]'
+            .format(id=self.tag1.id))
+        tag2_option = select_element(response, 'select[name=tags] option[value="{id}"]'
+            .format(id=self.tag2.id))
+
+        assert not tag1_option.get('selected')
+        assert tag2_option.get('selected')
+
 # asserts
 
 def assert_input(response, name, value=None):
@@ -270,3 +313,9 @@ def assert_management_form_inputs(response, total, initial, max_num):
     assert_input(response, name='comment_set-TOTAL_FORMS', value=total)
     assert_input(response, name='comment_set-INITIAL_FORMS', value=initial)
     assert_input(response, name='comment_set-MAX_NUM_FORMS', value=max_num)
+
+def select_element(response, selector):
+    elements = response.lxml.cssselect(selector)
+    assert len(elements) == 1, "Expected 1 element for selector '{0}', found {1}".format(
+            selector, len(elements))
+    return elements[0]
