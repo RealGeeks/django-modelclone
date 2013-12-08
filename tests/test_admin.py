@@ -94,6 +94,11 @@ class ClonableModelAdminTests(WebTest):
         assert_content_title(response, 'Clone it! post')
         assert_breadcrums_title(response, 'Clone it! post')
 
+    def test_clone_should_not_display_delete_button_on_submit_row(self):
+        response = self.app.get(self.post_url, user='admin')
+
+        refute_delete_button(response)
+
     def test_clone_should_raise_permission_denied(self):
         model_admin = ClonableModelAdmin(Post, default_admin_site)
         model_admin.has_add_permission = mock.Mock(return_value=False)
@@ -313,6 +318,10 @@ def assert_management_form_inputs(response, total, initial, max_num):
     assert_input(response, name='comment_set-TOTAL_FORMS', value=total)
     assert_input(response, name='comment_set-INITIAL_FORMS', value=initial)
     assert_input(response, name='comment_set-MAX_NUM_FORMS', value=max_num)
+
+def refute_delete_button(response):
+    elem = response.lxml.cssselect('.submit-row .deletelink-box')
+    assert len(elem) > 0, "Found delete button, should not exist"
 
 def select_element(response, selector):
     elements = response.lxml.cssselect(selector)
