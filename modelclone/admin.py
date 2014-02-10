@@ -165,7 +165,7 @@ class ClonableModelAdmin(ModelAdmin):
         return self.render_change_form(request,
             context,
             form_url=form_url,
-            change=True
+            change=False
         )
 
 class InlineAdminFormSetFakeOriginal(helpers.InlineAdminFormSet):
