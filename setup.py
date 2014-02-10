@@ -6,7 +6,7 @@ with open(join(dirname(__file__), 'README.md')) as f:
 
 setup(
     name = "django-modelclone",
-    version = "0.1",
+    version = "0.1.1",
     description = u"Django application that allows users to clone a model in Admin",
     long_description = README,
     packages = [
