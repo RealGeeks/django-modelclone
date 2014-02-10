@@ -96,7 +96,7 @@ class ClonableModelAdmin(ModelAdmin):
                 self.save_model(request, new_object, form, False)
                 self.save_related(request, form, formsets, False)
                 self.log_addition(request, new_object)
-                return self.response_add(request, new_object)
+                return self.response_add(request, new_object, post_url_continue='../../%s/')
 
         else:
             initial = model_to_dict(original_obj)
