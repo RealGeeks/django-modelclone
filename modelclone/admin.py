@@ -1,7 +1,7 @@
 from django.contrib.admin import ModelAdmin, helpers
 from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
-from django.utils.encoding import force_text, force_unicode
+from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext as _
 from django.utils.html import escape
 from django.forms.models import _get_foreign_key, model_to_dict
