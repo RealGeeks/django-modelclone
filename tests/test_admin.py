@@ -61,7 +61,8 @@ class ClonableModelAdminTests(WebTest):
 
         self.multimedia = Multimedia.objects.create(
             title = 'Jason Polakow',
-            image = File(open('tests/files/img.jpg'))
+            image = File(open('tests/files/img.jpg')),
+            document = File(open('tests/files/file.txt')),
         )
         self.multimedia_url = '/admin/posts/multimedia/{0}/clone/'.format(
             self.multimedia.id)
@@ -281,22 +282,27 @@ class ClonableModelAdminTests(WebTest):
         assert 'http://testserver/admin/posts/post/{0}/'.format(new_id) == response['Location']
 
 
-    # clone with images
+    # clone with images and files
 
-    def test_clone_should_keep_image_path_from_original_object(self):
+    def test_clone_should_keep_file_path_from_original_object(self):
         response = self.app.get(self.multimedia_url, user='admin')
 
         image = select_element(response, '.field-image p.file-upload a')
+        document = select_element(response, '.field-document p.file-upload a')
+
         assert '/media/images/img.jpg' == image.get('href')
+        assert '/media/documents/file.txt' == document.get('href')
 
 
-    def test_clone_should_keep_image_path_from_original_object_on_submit(self):
+    def test_clone_should_keep_file_path_from_original_object_on_submit(self):
         response = self.app.get(self.multimedia_url, user='admin')
         response.form.submit()
 
         multimedia = Multimedia.objects.latest('id')
 
         assert 'images/img.jpg' == str(multimedia.image)
+        assert 'documents/file.txt' == str(multimedia.document)
+
 
 
 # asserts
