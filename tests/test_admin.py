@@ -54,6 +54,7 @@ class ClonableModelAdminTests(WebTest):
         self.post_with_tags_url = '/admin/posts/post/{0}/clone/'.format(
             self.post_with_tags.id)
 
+
     def test_clone_view_is_wrapped_as_admin_view(self):
         model = mock.Mock()
         admin_site = mock.Mock()
@@ -64,11 +65,13 @@ class ClonableModelAdminTests(WebTest):
 
         assert '<wrapped clone view>' == clone_view_urlpattern.callback
 
+
     def test_clone_view_url_name(self):
         post_id = self.post.id
         expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
 
         assert reverse('admin:posts_post_clone', args=(post_id,)) == expected_url
+
 
     def test_clone_link_method_for_list_display_renders_object_clone_url(self):
         model_admin = ClonableModelAdmin(Post, default_admin_site)
@@ -78,10 +81,12 @@ class ClonableModelAdminTests(WebTest):
 
         assert model_admin.clone_link(self.post) == expected_link
 
+
     def test_clone_link_methods_for_list_display_should_allow_tags_and_have_short_description(self):
         assert ClonableModelAdmin.clone_link.allow_tags is True
         assert ClonableModelAdmin.clone_link.short_description == \
                ClonableModelAdmin.clone_verbose_name
+
 
     def test_clone_should_display_clone_verbose_name_as_title(self):
         response = self.app.get(self.post_url, user='admin')
@@ -94,10 +99,12 @@ class ClonableModelAdminTests(WebTest):
         assert_content_title(response, 'Clone it! post')
         assert_breadcrums_title(response, 'Clone it! post')
 
+
     def test_clone_should_not_display_delete_button_on_submit_row(self):
         response = self.app.get(self.post_url, user='admin')
 
         refute_delete_button(response)
+
 
     def test_clone_should_raise_permission_denied(self):
         model_admin = ClonableModelAdmin(Post, default_admin_site)
@@ -110,6 +117,7 @@ class ClonableModelAdminTests(WebTest):
             model_admin.clone_view(request, object_id)
 
         model_admin.has_add_permission.assert_called_once_with(request)
+
 
     # clone object
 
@@ -135,6 +143,7 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get('/admin/posts/post/999999999/clone/', user='admin',
                                 expect_errors=True)
         assert 404 == response.status_code
+
 
     # clone object with inlines
 
@@ -248,6 +257,17 @@ class ClonableModelAdminTests(WebTest):
 
         assert not tag1_option.get('selected')
         assert tag2_option.get('selected')
+
+    def test_clone_save_and_continue_editing_should_redirect_to_new_object_edit_page(self):
+        response = self.app.get(self.post_url, user='admin')
+        response = response.form.submit('_continue')
+
+        new_id = Post.objects.latest('id').id
+
+        assert 302 == response.status_code
+        assert 'http://testserver/admin/posts/post/{0}/'.format(new_id) == response['Location']
+
+
 
 # asserts
 
