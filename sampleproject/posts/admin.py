@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from modelclone import ClonableModelAdmin
 
-from .models import Post, Comment, Tag
+from .models import Post, Comment, Tag, Multimedia
 
 
 class CommentInline(admin.StackedInline):
@@ -15,6 +15,9 @@ class PostAdmin(ClonableModelAdmin):
 
     list_display = '__unicode__', 'clone_link'
 
+class MultimediaAdmin(ClonableModelAdmin):
+    pass
 
 admin.site.register(Post, PostAdmin)
 admin.site.register(Tag)
+admin.site.register(Multimedia, MultimediaAdmin)

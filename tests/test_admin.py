@@ -1,19 +1,24 @@
+import shutil
+
 from django.contrib.auth.models import User
 from django.contrib.admin import site as default_admin_site
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
+from django.core.files import File
+from django.conf import settings
 
 from django_webtest import WebTest
 import mock
 import pytest
 
-from sampleproject.posts.models import Post, Comment, Tag
+from sampleproject.posts.models import Post, Comment, Tag, Multimedia
 from modelclone import ClonableModelAdmin
 
 
 class ClonableModelAdminTests(WebTest):
 
     def setUp(self):
+        shutil.rmtree(settings.MEDIA_ROOT)
         User.objects.create_superuser(
             username='admin',
             password='admin',
@@ -53,6 +58,13 @@ class ClonableModelAdminTests(WebTest):
             self.post_with_comments.id)
         self.post_with_tags_url = '/admin/posts/post/{0}/clone/'.format(
             self.post_with_tags.id)
+
+        self.multimedia = Multimedia.objects.create(
+            title = 'Jason Polakow',
+            image = File(open('tests/files/img.jpg'))
+        )
+        self.multimedia_url = '/admin/posts/multimedia/{0}/clone/'.format(
+            self.multimedia.id)
 
 
     def test_clone_view_is_wrapped_as_admin_view(self):
@@ -258,6 +270,7 @@ class ClonableModelAdminTests(WebTest):
         assert not tag1_option.get('selected')
         assert tag2_option.get('selected')
 
+
     def test_clone_save_and_continue_editing_should_redirect_to_new_object_edit_page(self):
         response = self.app.get(self.post_url, user='admin')
         response = response.form.submit('_continue')
@@ -267,6 +280,23 @@ class ClonableModelAdminTests(WebTest):
         assert 302 == response.status_code
         assert 'http://testserver/admin/posts/post/{0}/'.format(new_id) == response['Location']
 
+
+    # clone with images
+
+    def test_clone_should_keep_image_path_from_original_object(self):
+        response = self.app.get(self.multimedia_url, user='admin')
+
+        image = select_element(response, '.field-image p.file-upload a')
+        assert '/media/images/img.jpg' == image.get('href')
+
+
+    def test_clone_should_keep_image_path_from_original_object_on_submit(self):
+        response = self.app.get(self.multimedia_url, user='admin')
+        response.form.submit()
+
+        multimedia = Multimedia.objects.latest('id')
+
+        assert 'images/img.jpg' == str(multimedia.image)
 
 
 # asserts
