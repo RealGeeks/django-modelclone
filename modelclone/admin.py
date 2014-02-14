@@ -1,7 +1,7 @@
 from django.contrib.admin import ModelAdmin, helpers
 from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
-from django.utils.encoding import force_text, force_unicode
+from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext as _
 from django.utils.html import escape
 from django.forms.models import _get_foreign_key, model_to_dict
@@ -9,6 +9,7 @@ from django.forms.formsets import all_valid
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
+from django.db.models.fields.files import ImageFieldFile
 
 
 __all__ = 'ClonableModelAdmin',
@@ -93,10 +94,15 @@ class ClonableModelAdmin(ModelAdmin):
                 formsets.append(formset)
 
             if all_valid(formsets) and form_validated:
+                # Saves ImageFiles paths from original object
+                for prop, value in vars(original_obj).iteritems():
+                    if isinstance(getattr(original_obj, prop), ImageFieldFile):
+                        setattr(new_object, prop, getattr(original_obj, prop))
+                
                 self.save_model(request, new_object, form, False)
                 self.save_related(request, form, formsets, False)
                 self.log_addition(request, new_object)
-                return self.response_add(request, new_object)
+                return self.response_add(request, new_object, post_url_continue='../../%s/')
 
         else:
             initial = model_to_dict(original_obj)
@@ -159,7 +165,7 @@ class ClonableModelAdmin(ModelAdmin):
         return self.render_change_form(request,
             context,
             form_url=form_url,
-            change=True
+            change=False
         )
 
 class InlineAdminFormSetFakeOriginal(helpers.InlineAdminFormSet):
