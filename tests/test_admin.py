@@ -321,7 +321,7 @@ def assert_management_form_inputs(response, total, initial, max_num):
 
 def refute_delete_button(response):
     elem = response.lxml.cssselect('.submit-row .deletelink-box')
-    assert len(elem) > 0, "Found delete button, should not exist"
+    assert len(elem) == 0, "Found delete button, should not exist"
 
 def select_element(response, selector):
     elements = response.lxml.cssselect(selector)
