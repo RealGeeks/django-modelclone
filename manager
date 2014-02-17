@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os
 import sys
 import subprocess
@@ -22,7 +24,7 @@ def django_environ(testing=False):
         def setup_environ():
             sys.path.insert(0, 'sampleproject')
             os.environ['DJANGO_SETTINGS_MODULE'] = settings_module
-            print 'Using settings: {0}'.format(settings_module)
+            print('Using settings: {0}'.format(settings_module))
 
         def create_database():
             from django.core.management import call_command
@@ -39,7 +41,7 @@ def django_environ(testing=False):
                 admin.set_password('admin')
                 admin.save()
 
-            print 'Superuser created. Login "admin" password "admin"'
+            print('Superuser created. Login "admin" password "admin"')
 
         @functools.wraps(func)
         def wrapper(*args, **kw):
@@ -54,22 +56,37 @@ def django_environ(testing=False):
 
 
 @django_environ(testing=True)
-def runtests(argv):
+def test(argv):
+    '''Run all tests'''
     options = " ".join(argv)
     sys.exit(pytest.main("--capture=no tests " + options))
 
 
 @django_environ()
-def runserver(argv):
+def serve(argv):
+    '''Start django development server'''
     from django.core.management import execute_from_command_line
     execute_from_command_line(['manage.py', 'runserver'])
 
 
 def cleanup():
+    '''Removes temporary files'''
     shell('find . -name *.pyc -delete')
     shell('find . -name __pycache__ -delete')
     shell('find . -name db_test.sqlite -delete')
 
+def help():
+    '''Show help message and exit'''
+    print('Available tasks: \n')
+    for task in tasks:
+        print(' - {0}: {1}'.format(task.__name__, task.__doc__), file=sys.stderr)
+    print()
+
+tasks = test, serve, cleanup, help
 
 if __name__ == '__main__':
-    globals()[sys.argv[1]](sys.argv[2:])
+    try:
+        globals()[sys.argv[1]](sys.argv[2:])
+    except (IndexError, KeyError):
+        help()
+        sys.exit(1)

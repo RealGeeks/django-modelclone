@@ -54,10 +54,10 @@ Inside your fork directory run:
 
 Now you can run the tests:
 
-    $ ./manager runtests
+    $ ./manager test
 
 To use the app in the sample project use:
 
-    $ ./manager runserver
+    $ ./manager serve
 
 The app is available on [http://localhost:8000/admin/](http://localhost:8000/admin/), username and password "admin".
