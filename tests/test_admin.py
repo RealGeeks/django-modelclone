@@ -19,7 +19,7 @@ from modelclone import ClonableModelAdmin
 class ClonableModelAdminTests(WebTest):
 
     def setUp(self):
-        shutil.rmtree(settings.MEDIA_ROOT)
+        rm_rf(settings.MEDIA_ROOT)
         User.objects.create_superuser(
             username='admin',
             password='admin',
@@ -304,6 +304,13 @@ class ClonableModelAdminTests(WebTest):
         assert 'images/img.jpg' == str(multimedia.image)
         assert 'documents/file.txt' == str(multimedia.document)
 
+
+
+def rm_rf(path):
+    try:
+        shutil.rmtree(path)
+    except OSError:
+        pass
 
 
 # asserts
