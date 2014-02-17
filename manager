@@ -56,7 +56,7 @@ def django_environ(testing=False):
 @django_environ(testing=True)
 def runtests(argv):
     options = " ".join(argv)
-    pytest.main("--capture=no tests " + options)
+    sys.exit(pytest.main("--capture=no tests " + options))
 
 
 @django_environ()
