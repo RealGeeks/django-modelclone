@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 from django.core.files import File
 from django.conf import settings
+from django.forms.formsets import DEFAULT_MAX_NUM
 
 from django_webtest import WebTest
 import mock
@@ -164,7 +165,7 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_with_comments_url, user='admin')
 
         # management form data
-        assert_management_form_inputs(response, total=4, initial=0, max_num='')
+        assert_management_form_inputs(response, total=4, initial=0, max_num=DEFAULT_MAX_NUM)
 
         # comment 1
         assert_input(response, name='comment_set-0-author', value='Bob')
@@ -214,7 +215,7 @@ class ClonableModelAdminTests(WebTest):
             assert_input(response, name='comment_set-'+i+'-id', value='')
             assert_input(response, name='comment_set-'+i+'-post', value='')
 
-        assert_management_form_inputs(response, total=4+extra, initial=0, max_num='')
+        assert_management_form_inputs(response, total=4+extra, initial=0, max_num=DEFAULT_MAX_NUM)
 
 
     def test_clone_should_create_new_object_with_inlines_on_POST(self):
