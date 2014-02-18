@@ -47,17 +47,18 @@ Tested with Python 2.6 and 2.7. Django 1.4.
 Fork the [repository on github](http://github.com/realgeeks/django-modelclone), make your
 changes (don't forget the tests) and send a pull request.
 
-Inside your fork directory run:
+[Tox](http://tox.readthedocs.org/) is used to run tests:
 
-    $ pip install -e .
-    $ pip install -r requirements-dev.txt
+    $ tox
 
-Now you can run the tests:
+You can also run the sample project to test manually. In this case you'll need to
+install Django, or just use one of the virtualenvs tox creates, for example:
 
-    $ ./manager test
+    $ source .tox/py27-django15/bin/activate
 
-To use the app in the sample project use:
+then start the server
 
-    $ ./manager serve
+    (py27-django15) $ ./manager serve
 
-The app is available on [http://localhost:8000/admin/](http://localhost:8000/admin/), username and password "admin".
+The app is available on [http://localhost:8000/admin/](http://localhost:8000/admin/),
+username and password "admin".

@@ -1,8 +1,0 @@
-webtest
-django-webtest
-Django==1.4.3
-pytest
-lxml
-cssselect
-mock
-Pillow

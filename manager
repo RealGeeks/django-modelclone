@@ -7,8 +7,6 @@ import sys
 import subprocess
 import functools
 
-import pytest
-
 
 shell = functools.partial(subprocess.call, shell=True)
 
@@ -58,6 +56,8 @@ def django_environ(testing=False):
 @django_environ(testing=True)
 def test(argv):
     '''Run all tests'''
+    import pytest
+
     options = " ".join(argv)
     sys.exit(pytest.main("--capture=no tests " + options))
 
