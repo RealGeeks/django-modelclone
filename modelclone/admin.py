@@ -1,3 +1,4 @@
+from django import VERSION
 from django.contrib.admin import ModelAdmin, helpers
 from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
@@ -98,11 +99,22 @@ class ClonableModelAdmin(ModelAdmin):
                 for prop, value in vars(original_obj).iteritems():
                     if isinstance(getattr(original_obj, prop), FieldFile):
                         setattr(new_object, prop, getattr(original_obj, prop))
-                
+
                 self.save_model(request, new_object, form, False)
                 self.save_related(request, form, formsets, False)
                 self.log_addition(request, new_object)
-                return self.response_add(request, new_object, post_url_continue='../../%s/')
+
+                if VERSION[1] <= 4:
+                    # Until Django 1.4 giving %s in the url would be replaced with
+                    # object primary key.
+                    # I can't use the default because it goes back only one level
+                    # ('../%s/') and now we are under clone url, so we need one more level
+                    post_url_continue = '../../%s/'
+                else:
+                    # Since 1.5 '%s' was deprecated and if None is given reverse() will
+                    # be used and do the right thing
+                    post_url_continue = None
+                return self.response_add(request, new_object, post_url_continue)
 
         else:
             initial = model_to_dict(original_obj)
