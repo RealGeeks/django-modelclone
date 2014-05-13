@@ -133,11 +133,14 @@ class ClonableModelAdmin(ModelAdmin):
                     initial.append(model_to_dict(obj, exclude=[obj._meta.pk.name,
                                                                FormSet.fk.name]))
                 formset = FormSet(prefix=prefix, initial=initial)
-                # since there is no way to customize the `extra` in the constructor,
+                # Since there is no way to customize the `extra` in the constructor,
                 # construct the forms again...
                 # most of this view is a hack, but this is the ugliest one
                 formset.extra = len(initial) + formset.extra
-                formset._construct_forms()
+                # _construct_forms() was removed on django 1.6
+                # see https://github.com/django/django/commit/ef79582e8630cb3c119caed52130c9671188addd
+                if hasattr(formset, '_construct_forms'):
+                    formset._construct_forms()
                 formsets.append(formset)
 
         admin_form = helpers.AdminForm(
