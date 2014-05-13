@@ -3,7 +3,7 @@ from os.path import dirname, join
 
 setup(
     name = "django-modelclone",
-    version = "0.2.1",
+    version = "0.3.0",
     description = u"Django application that allows users to clone a model in Admin",
     packages = [
         'modelclone',
