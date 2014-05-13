@@ -22,6 +22,7 @@ class ClonableModelAdminTests(WebTest):
 
     def setUp(self):
         rm_rf(settings.MEDIA_ROOT)
+        User.objects.all().delete()
         User.objects.create_superuser(
             username='admin',
             password='admin',
