@@ -9,6 +9,7 @@ from django.conf import settings
 from django.forms.formsets import DEFAULT_MAX_NUM
 
 from django_webtest import WebTest
+from webtest import Upload
 import mock
 import pytest
 
@@ -307,6 +308,17 @@ class ClonableModelAdminTests(WebTest):
         assert 'images/img.jpg' == str(multimedia.image)
         assert 'documents/file.txt' == str(multimedia.document)
 
+
+    def test_clone_should_override_file_from_original_object_on_submit_if_new_file_was_chosen(self):
+        response = self.app.get(self.multimedia_url, user='admin')
+        response.form['image'] = Upload('tests/files/img-2.jpg')
+        response.form['document'] = Upload('tests/files/file-2.txt')
+        response.form.submit()
+
+        multimedia = Multimedia.objects.latest('id')
+
+        assert 'images/img-2.jpg' == str(multimedia.image)
+        assert 'documents/file-2.txt' == str(multimedia.document)
 
 
 def rm_rf(path):
