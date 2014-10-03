@@ -15,6 +15,9 @@ class PostAdmin(ClonableModelAdmin):
 
     list_display = '__unicode__', 'clone_link'
 
+    def tweak_cloned_obj(self, obj):
+        obj.title = u"%s (duplicate)" % obj.title
+
 class MultimediaAdmin(ClonableModelAdmin):
     pass
 

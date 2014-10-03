@@ -143,7 +143,7 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_url, user='admin')
 
         # post
-        assert_input(response, name='title', value='How to learn windsurf')
+        assert_input(response, name='title', value='How to learn windsurf (duplicate)')
         assert_input(response, name='content', value='Practice a lot!')
 
         # csrf
@@ -154,7 +154,8 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_url, user='admin')
         response.form.submit()
 
-        assert 2 == Post.objects.filter(title=self.post.title).count()
+        assert Post.objects.filter(title=self.post.title).exists()
+        assert Post.objects.filter(title=self.post.title + ' (duplicate)').exists()
 
 
     def test_clone_should_return_404_if_object_does_not_exist(self):
@@ -226,7 +227,8 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_with_comments_url, user='admin')
         response.form.submit()
 
-        post1, post2 = Post.objects.filter(title=self.post_with_comments.title)
+        post1 = Post.objects.get(title=self.post_with_comments.title)
+        post2 = Post.objects.get(title=self.post_with_comments.title + ' (duplicate)')
 
         assert 2 == post1.comment_set.count()
         assert 2 == post2.comment_set.count()

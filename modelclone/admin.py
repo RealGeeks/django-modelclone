@@ -120,6 +120,7 @@ class ClonableModelAdmin(ModelAdmin):
                 return self.response_add(request, new_object, post_url_continue)
 
         else:
+            self.tweak_cloned_obj(original_obj)
             initial = model_to_dict(original_obj)
             form = ModelForm(initial=initial)
 
@@ -185,6 +186,10 @@ class ClonableModelAdmin(ModelAdmin):
             form_url=form_url,
             change=False
         )
+
+    def tweak_cloned_obj(self, obj):
+        """Override this method to tweak a cloned object before displaying its form.
+        """
 
 class InlineAdminFormSetFakeOriginal(helpers.InlineAdminFormSet):
 
