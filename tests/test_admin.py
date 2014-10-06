@@ -200,6 +200,17 @@ class ClonableModelAdminTests(WebTest):
         assert_input(response, name='comment_set-3-post', value='')
         refute_input(response, name='comment_set-3-DELETE')
 
+    def test_clone_should_honor_tweaked_inline_fields(self):
+        # In the sample project, we have an inline tweak that filters out comments with an
+        # author 'do-not-clone'. We test here that we honor that tweak.
+        # This comment below is added as the 3rd comment of self.post_with_comments
+        Comment.objects.create(
+            author = 'do-not-clone',
+            content = 'whatever',
+            post = self.post_with_comments
+        )
+        response = self.app.get(self.post_with_comments_url, user='admin')
+        assert_input(response, name='comment_set-2-author', value='')
 
     def test_clone_with_inlines_should_display_the_necessary_number_of_forms(self):
         extra = 2   # CommentInline.extra on sampleproject/posts
