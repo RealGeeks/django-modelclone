@@ -205,7 +205,7 @@ class ClonableModelAdmin(ModelAdmin):
         """Override this method to tweak a cloned inline before displaying its form.
 
         ``related_name`` is the name of the relation being inlined. Note that if you've inline the
-        same relation more than once, ``related_name`` will have a numerical prefix, for example,
+        same relation more than once, ``related_name`` will have a numerical suffix, for example,
         ``comment_set-2``.
 
         ``fields_list`` is a list of dictionaries containing the inline field data (the result of
