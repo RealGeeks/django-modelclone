@@ -19,9 +19,9 @@ class PostAdmin(ClonableModelAdmin):
         fields['title'] = u"%s (duplicate)" % fields['title']
         return fields
 
-    def tweak_cloned_inline_fields(self, fkname, fields_list):
+    def tweak_cloned_inline_fields(self, related_name, fields_list):
         # This is a silly override just to demonstrate the feature and to be able to test it.
-        if fkname == 'comment_set':
+        if related_name == 'comment_set':
             fields_list = [comment for comment in fields_list if comment['author'] != 'do-not-clone']
         return fields_list
 

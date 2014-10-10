@@ -201,10 +201,12 @@ class ClonableModelAdmin(ModelAdmin):
         """
         return fields
 
-    def tweak_cloned_inline_fields(self, fkname, fields_list):
+    def tweak_cloned_inline_fields(self, related_name, fields_list):
         """Override this method to tweak a cloned inline before displaying its form.
 
-        ``fkname`` is the name of the ``ForeignKey`` being inlined.
+        ``related_name`` is the name of the relation being inlined. Note that if you've inline the
+        same relation more than once, ``related_name`` will have a numerical prefix, for example,
+        ``comment_set-2``.
 
         ``fields_list`` is a list of dictionaries containing the inline field data (the result of
         ``model_to_dict()`` for each inlined row).
