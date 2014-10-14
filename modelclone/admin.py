@@ -121,6 +121,7 @@ class ClonableModelAdmin(ModelAdmin):
 
         else:
             initial = model_to_dict(original_obj)
+            initial = self.tweak_cloned_fields(initial)
             form = ModelForm(initial=initial)
 
             prefixes = {}
@@ -135,6 +136,7 @@ class ClonableModelAdmin(ModelAdmin):
                 for obj in queryset:
                     initial.append(model_to_dict(obj, exclude=[obj._meta.pk.name,
                                                                FormSet.fk.name]))
+                initial = self.tweak_cloned_inline_fields(prefix, initial)
                 formset = FormSet(prefix=prefix, initial=initial)
                 # Since there is no way to customize the `extra` in the constructor,
                 # construct the forms again...
@@ -185,6 +187,33 @@ class ClonableModelAdmin(ModelAdmin):
             form_url=form_url,
             change=False
         )
+
+    def tweak_cloned_fields(self, fields):
+        """Override this method to tweak a cloned object before displaying its form.
+
+        ``fields`` is a dictionary containing the cloned object's field data (the result of
+        ``model_to_dict()``).
+
+        It does *not* contain inline fields. To tweak inline fields, override
+        ``tweak_cloned_inline_fields()``.
+
+        This method returns the modified ``fields``.
+        """
+        return fields
+
+    def tweak_cloned_inline_fields(self, related_name, fields_list):
+        """Override this method to tweak a cloned inline before displaying its form.
+
+        ``related_name`` is the name of the relation being inlined. Note that if you've inline the
+        same relation more than once, ``related_name`` will have a numerical suffix, for example,
+        ``comment_set-2``.
+
+        ``fields_list`` is a list of dictionaries containing the inline field data (the result of
+        ``model_to_dict()`` for each inlined row).
+
+        This method returns the modified ``fields_list``.
+        """
+        return fields_list
 
 class InlineAdminFormSetFakeOriginal(helpers.InlineAdminFormSet):
 

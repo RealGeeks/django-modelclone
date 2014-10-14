@@ -143,7 +143,7 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_url, user='admin')
 
         # post
-        assert_input(response, name='title', value='How to learn windsurf')
+        assert_input(response, name='title', value='How to learn windsurf (duplicate)')
         assert_input(response, name='content', value='Practice a lot!')
 
         # csrf
@@ -154,7 +154,8 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_url, user='admin')
         response.form.submit()
 
-        assert 2 == Post.objects.filter(title=self.post.title).count()
+        assert Post.objects.filter(title=self.post.title).exists()
+        assert Post.objects.filter(title=self.post.title + ' (duplicate)').exists()
 
 
     def test_clone_should_return_404_if_object_does_not_exist(self):
@@ -199,6 +200,17 @@ class ClonableModelAdminTests(WebTest):
         assert_input(response, name='comment_set-3-post', value='')
         refute_input(response, name='comment_set-3-DELETE')
 
+    def test_clone_should_honor_tweaked_inline_fields(self):
+        # In the sample project, we have an inline tweak that filters out comments with an
+        # author 'do-not-clone'. We test here that we honor that tweak.
+        # This comment below is added as the 3rd comment of self.post_with_comments
+        Comment.objects.create(
+            author = 'do-not-clone',
+            content = 'whatever',
+            post = self.post_with_comments
+        )
+        response = self.app.get(self.post_with_comments_url, user='admin')
+        assert_input(response, name='comment_set-2-author', value='')
 
     def test_clone_with_inlines_should_display_the_necessary_number_of_forms(self):
         extra = 2   # CommentInline.extra on sampleproject/posts
@@ -226,7 +238,8 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_with_comments_url, user='admin')
         response.form.submit()
 
-        post1, post2 = Post.objects.filter(title=self.post_with_comments.title)
+        post1 = Post.objects.get(title=self.post_with_comments.title)
+        post2 = Post.objects.get(title=self.post_with_comments.title + ' (duplicate)')
 
         assert 2 == post1.comment_set.count()
         assert 2 == post2.comment_set.count()
