@@ -4,8 +4,9 @@ from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
 from django.utils.encoding import force_unicode
 from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as lazy
 from django.utils.html import escape
-from django.forms.models import _get_foreign_key, model_to_dict
+from django.forms.models import model_to_dict
 from django.forms.formsets import all_valid
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
@@ -17,18 +18,18 @@ __all__ = 'ClonableModelAdmin',
 
 class ClonableModelAdmin(ModelAdmin):
 
-    clone_verbose_name = _('Duplicate')
+    clone_verbose_name = lazy('Duplicate')
     change_form_template = 'modelclone/change_form.html'
 
     def clone_link(self, clonable_model):
         '''
         Method to be used on `list_display`, renders a link to clone model
         '''
-        url = reverse('admin:{0}_{1}_clone'.format(clonable_model._meta.app_label,
-                                                   clonable_model._meta.module_name),
+        _url = reverse('admin:{0}_{1}_clone'.format(clonable_model._meta.app_label,
+                                                    clonable_model._meta.module_name),
                       args=(clonable_model._get_pk_val(),),
                       current_app=self.admin_site.name)
-        return '<a href="{0}">{1}</a>'.format(url, self.clone_verbose_name)
+        return '<a href="{0}">{1}</a>'.format(_url, self.clone_verbose_name)
 
     clone_link.short_description = clone_verbose_name  # not overridable by subclass
     clone_link.allow_tags = True
