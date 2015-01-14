@@ -31,7 +31,7 @@ object.
 
 I don't like the way this feature works because you will save an identical copy of the
 original object (if you don't get validation errors) as soon as you click that link, and
-if you forget to make the small changes that you wanted in the new object you will end up 
+if you forget to make the small changes that you wanted in the new object you will end up
 with a duplicate of the existing object.
 
 On the other hand, django-modelclone offers an intermediate view, that basically pre-fills
@@ -47,8 +47,9 @@ Tested with Python 2.6 and 2.7. Django 1.4.
 Fork the [repository on github](http://github.com/realgeeks/django-modelclone), make your
 changes (don't forget the tests) and send a pull request.
 
-[Tox](http://tox.readthedocs.org/) is used to run tests:
+To run the tests, install and run [Tox](http://tox.readthedocs.org/):
 
+    $ pip install tox
     $ tox
 
 You can also run the sample project to test manually. In this case you'll need to
