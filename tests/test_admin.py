@@ -13,7 +13,7 @@ from webtest import Upload
 import mock
 import pytest
 
-from sampleproject.posts.models import Post, Comment, Tag, Multimedia
+from posts.models import Post, Comment, Tag, Multimedia
 from modelclone import ClonableModelAdmin
 
 from .asserts import *

@@ -1,8 +1,12 @@
+import os.path
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = ()
 MANAGERS = ADMINS
+
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 DATABASES = {
     'default': {
@@ -43,7 +47,9 @@ MIDDLEWARE_CLASSES = (
 )
 ROOT_URLCONF = 'sampleproject.urls'
 WSGI_APPLICATION = 'sampleproject.wsgi.application'
-TEMPLATE_DIRS = ()
+TEMPLATE_DIRS = (
+    os.path.join(BASEDIR, 'templates'),
+)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
