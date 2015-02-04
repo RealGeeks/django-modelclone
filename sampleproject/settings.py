@@ -6,7 +6,7 @@ TEMPLATE_DEBUG = DEBUG
 ADMINS = ()
 MANAGERS = ADMINS
 
-BASEDIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 DATABASES = {
     'default': {
@@ -48,7 +48,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'sampleproject.urls'
 WSGI_APPLICATION = 'sampleproject.wsgi.application'
 TEMPLATE_DIRS = (
-    os.path.join(BASEDIR, 'templates'),
+    os.path.join(BASE_DIR, 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -87,3 +87,5 @@ LOGGING = {
         },
     }
 }
+
+TEST_RUNNER = 'django.test.simple.DjangoTestSuiteRunner'

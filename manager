@@ -10,14 +10,15 @@ import functools
 
 shell = functools.partial(subprocess.call, shell=True)
 
+import django
+MINOR = django.VERSION[1]
+
 
 def django_environ(testing=False):
 
     def decorator(func):
 
         settings_module = 'sampleproject.settings'
-        if testing:
-            settings_module += '_testing'
 
         def setup_environ():
             sys.path.insert(0, 'sampleproject')
@@ -25,10 +26,17 @@ def django_environ(testing=False):
             print('Using settings: {0}'.format(settings_module))
 
         def create_database():
+            import django
+            if MINOR >= 7:
+                django.setup()
+
             from django.core.management import call_command
             from django.contrib.auth.models import User
 
-            call_command('syncdb', interactive=False)
+            if MINOR >= 7:
+                call_command('migrate', interactive=False)
+            else:
+                call_command('syncdb', interactive=False)
 
             admin, created = User.objects.get_or_create(
                 username='admin',
@@ -52,16 +60,6 @@ def django_environ(testing=False):
 
     return decorator
 
-
-@django_environ(testing=True)
-def test(argv):
-    '''Run all tests'''
-    import pytest
-
-    options = " ".join(argv)
-    sys.exit(pytest.main("--capture=no tests " + options))
-
-
 @django_environ()
 def serve(argv):
     '''Start django development server'''
@@ -69,20 +67,20 @@ def serve(argv):
     execute_from_command_line(['manage.py', 'runserver'])
 
 
-def cleanup():
+def cleanup(*args):
     '''Removes temporary files'''
     shell('find . -name *.pyc -delete')
     shell('find . -name __pycache__ -delete')
     shell('find . -name db_test.sqlite -delete')
 
-def help():
+def help(*args):
     '''Show help message and exit'''
     print('Available tasks: \n')
     for task in tasks:
         print(' - {0}: {1}'.format(task.__name__, task.__doc__), file=sys.stderr)
     print()
 
-tasks = test, serve, cleanup, help
+tasks = serve, cleanup, help
 
 if __name__ == '__main__':
     try:
