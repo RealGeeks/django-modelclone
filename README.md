@@ -40,7 +40,7 @@ side effects.
 
 ## Requirements
 
-Tested with Python 2.6 and 2.7. Django 1.4.
+Tested with Python 2.6 and 2.7. Django 1.4 up to 1.7. See `tox.ini`.
 
 ## Hacking
 
