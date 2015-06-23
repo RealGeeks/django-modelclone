@@ -2,7 +2,7 @@ from django import VERSION
 from django.contrib.admin import ModelAdmin, helpers
 from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_lazy as lazy
 from django.utils.html import escape
@@ -64,7 +64,7 @@ class ClonableModelAdmin(ModelAdmin):
 
         if original_obj is None:
             raise Http404(_('{name} object with primary key {key} does not exist.'.format(
-                name=force_unicode(opts.verbose_name),
+                name=force_text(opts.verbose_name),
                 key=repr(escape(object_id))
             )))
 
