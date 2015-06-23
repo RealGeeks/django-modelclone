@@ -73,6 +73,10 @@ def cleanup(*args):
     shell('find . -name __pycache__ -delete')
     shell('find . -name db_test.sqlite -delete')
 
+def pypi():
+    '''Upload to pypi'''
+    shell('python setup.py sdist upload')
+
 def help(*args):
     '''Show help message and exit'''
     print('Available tasks: \n')
@@ -80,7 +84,7 @@ def help(*args):
         print(' - {0}: {1}'.format(task.__name__, task.__doc__), file=sys.stderr)
     print()
 
-tasks = serve, cleanup, help
+tasks = serve, cleanup, pypi, help
 
 if __name__ == '__main__':
     try:
