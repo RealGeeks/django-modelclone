@@ -99,7 +99,7 @@ class ClonableModelAdmin(ModelAdmin):
 
                 # if original model has any file field, save new model
                 # with same paths to these files
-                for name in vars(original_obj).iterkeys():
+                for name in vars(original_obj):
                     field = getattr(original_obj, name)
                     if isinstance(field, FieldFile) and name not in request.FILES:
                         setattr(new_object, name, field)
