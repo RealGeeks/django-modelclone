@@ -1,5 +1,6 @@
 import shutil
 
+import django
 from django.contrib.auth.models import User
 from django.contrib.admin import site as default_admin_site
 from django.core.urlresolvers import reverse
@@ -81,7 +82,10 @@ class ClonableModelAdminTests(WebTest):
         model_admin = ClonableModelAdmin(model, admin_site)
         clone_view_urlpattern = model_admin.get_urls()[0]
 
-        assert '<wrapped clone view>' == clone_view_urlpattern.callback
+        if django.VERSION >= (1, 8):
+            assert '<wrapped clone view>' == clone_view_urlpattern._callback_str
+        else:
+            assert '<wrapped clone view>' == clone_view_urlpattern.callback
 
 
     def test_clone_view_url_name(self):

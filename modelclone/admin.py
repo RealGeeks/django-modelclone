@@ -25,10 +25,13 @@ class ClonableModelAdmin(ModelAdmin):
         '''
         Method to be used on `list_display`, renders a link to clone model
         '''
-        _url = reverse('admin:{0}_{1}_clone'.format(clonable_model._meta.app_label,
-                                                    clonable_model._meta.module_name),
-                      args=(clonable_model._get_pk_val(),),
-                      current_app=self.admin_site.name)
+        _url = reverse(
+            'admin:{0}_{1}_clone'.format(
+                clonable_model._meta.app_label,
+                getattr(clonable_model._meta, 'module_name', getattr(clonable_model._meta, 'model_name', ''))),
+            args=(clonable_model._get_pk_val(),),
+            current_app=self.admin_site.name
+        )
         return '<a href="{0}">{1}</a>'.format(_url, self.clone_verbose_name)
 
     clone_link.short_description = clone_verbose_name  # not overridable by subclass
@@ -37,13 +40,14 @@ class ClonableModelAdmin(ModelAdmin):
     def get_urls(self):
         url_name = '{0}_{1}_clone'.format(
             self.model._meta.app_label,
-            self.model._meta.module_name)   # NOTE: Django 1.5 uses model_name here
+            getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
         new_urlpatterns = patterns('',
             url(r'^(.+)/clone/$',
                 self.admin_site.admin_view(self.clone_view),
                 name=url_name)
         )
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
+
         return new_urlpatterns + original_urlpatterns
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
@@ -132,7 +136,14 @@ class ClonableModelAdmin(ModelAdmin):
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
                 initial = []
-                queryset = inline.queryset(request).filter(
+
+                # Django 1.8 Patch
+                if hasattr(inline, 'queryset'):
+                    get_queryset = inline.queryset
+                else:
+                    get_queryset = inline.get_queryset
+
+                queryset = get_queryset(request).filter(
                     **{FormSet.fk.name: original_obj})
                 for obj in queryset:
                     initial.append(model_to_dict(obj, exclude=[obj._meta.pk.name,
