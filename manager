@@ -10,9 +10,6 @@ import functools
 
 shell = functools.partial(subprocess.call, shell=True)
 
-import django
-MINOR = django.VERSION[1]
-
 
 def django_environ(testing=False):
 
@@ -27,6 +24,7 @@ def django_environ(testing=False):
 
         def create_database():
             import django
+            MINOR = django.VERSION[1]
             if MINOR >= 7:
                 django.setup()
 
@@ -73,7 +71,7 @@ def cleanup(*args):
     shell('find . -name __pycache__ -delete')
     shell('find . -name db_test.sqlite -delete')
 
-def pypi():
+def pypi(*args):
     '''Upload to pypi'''
     shell('python setup.py sdist upload')
 
