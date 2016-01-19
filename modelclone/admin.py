@@ -1,6 +1,10 @@
 from django import VERSION
 from django.contrib.admin import ModelAdmin, helpers
-from django.contrib.admin.util import unquote
+try:
+    from django.contrib.admin.utils import unquote
+except ImportError:
+    # django < 1.7
+    from django.contrib.admin.util import unquote
 from django.conf.urls import patterns, url
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
