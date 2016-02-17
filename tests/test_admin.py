@@ -301,7 +301,10 @@ class ClonableModelAdminTests(WebTest):
         new_id = Post.objects.latest('id').id
 
         assert 302 == response.status_code
-        assert 'http://testserver/admin/posts/post/{0}/'.format(new_id) == response['Location']
+        assert (
+            'http://testserver/admin/posts/post/{0}/'.format(new_id) == response['Location'] or
+            '/admin/posts/post/4/change/' == response['Location']
+        )
 
 
     # clone with images and files
