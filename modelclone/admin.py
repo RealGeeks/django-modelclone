@@ -45,11 +45,20 @@ class ClonableModelAdmin(ModelAdmin):
         url_name = '{0}_{1}_clone'.format(
             self.model._meta.app_label,
             getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
-        new_urlpatterns = patterns('',
-            url(r'^(.+)/clone/$',
-                self.admin_site.admin_view(self.clone_view),
-                name=url_name)
-        )
+
+        if VERSION[1] < 9:
+            new_urlpatterns = patterns('',
+                url(r'^(.+)/clone/$',
+                    self.admin_site.admin_view(self.clone_view),
+                    name=url_name)
+            )
+        else:
+            new_urlpatterns = patterns('',
+                url(r'^(.+)/change/clone/$',
+                    self.admin_site.admin_view(self.clone_view),
+                    name=url_name)
+            )
+
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
 
         return new_urlpatterns + original_urlpatterns
@@ -92,7 +101,14 @@ class ClonableModelAdmin(ModelAdmin):
                 form_validated = False
 
             prefixes = {}
-            for FormSet, inline in zip(self.get_formsets(request), inline_instances):
+
+            if VERSION[1] < 9:
+                zipped = zip(self.get_formsets(request), inline_instances)
+            else:
+                # this returns the tuples we want
+                zipped = self.get_formsets_with_inlines(request)
+
+            for FormSet, inline in zipped:
                 prefix = FormSet.get_default_prefix()
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
@@ -114,7 +130,11 @@ class ClonableModelAdmin(ModelAdmin):
 
                 self.save_model(request, new_object, form, False)
                 self.save_related(request, form, formsets, False)
-                self.log_addition(request, new_object)
+
+                if VERSION[1] < 9:
+                    self.log_addition(request, new_object)
+                else:
+                    self.log_addition(request, new_object, 'added')
 
                 if VERSION[1] <= 4:
                     # Until Django 1.4 giving %s in the url would be replaced with
@@ -134,7 +154,14 @@ class ClonableModelAdmin(ModelAdmin):
             form = ModelForm(initial=initial)
 
             prefixes = {}
-            for FormSet, inline in zip(self.get_formsets(request), inline_instances):
+
+            if VERSION[1] < 9:
+                zipped = zip(self.get_formsets(request), inline_instances)
+            else:
+                # this returns the tuples we want
+                zipped = self.get_formsets_with_inlines(request)
+
+            for FormSet, inline in zipped:
                 prefix = FormSet.get_default_prefix()
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
@@ -189,7 +216,7 @@ class ClonableModelAdmin(ModelAdmin):
             'title': title,
             'original': title,
             'adminform': admin_form,
-            'is_popup': "_popup" in request.REQUEST,
+            'is_popup': "_popup" in request.GET,
             'show_delete': False,
             'media': media,
             'inline_admin_formsets': inline_admin_formsets,
