@@ -212,7 +212,7 @@ class ClonableModelAdmin(ModelAdmin):
             'title': title,
             'original': title,
             'adminform': admin_form,
-            'is_popup': "_popup" in request.REQUEST,
+            'is_popup': "_popup" in request.GET,
             'show_delete': False,
             'media': media,
             'inline_admin_formsets': inline_admin_formsets,
