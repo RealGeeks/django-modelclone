@@ -130,7 +130,11 @@ class ClonableModelAdmin(ModelAdmin):
 
                 self.save_model(request, new_object, form, False)
                 self.save_related(request, form, formsets, False)
-                self.log_addition(request, new_object)
+
+                if VERSION[1] < 9:
+                    self.log_addition(request, new_object)
+                else:
+                    self.log_addition(request, new_object, 'added')
 
                 if VERSION[1] <= 4:
                     # Until Django 1.4 giving %s in the url would be replaced with
