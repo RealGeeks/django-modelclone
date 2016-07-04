@@ -45,11 +45,20 @@ class ClonableModelAdmin(ModelAdmin):
         url_name = '{0}_{1}_clone'.format(
             self.model._meta.app_label,
             getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
-        new_urlpatterns = patterns('',
-            url(r'^(.+)/clone/$',
-                self.admin_site.admin_view(self.clone_view),
-                name=url_name)
-        )
+
+        if VERSION[1] < 9:
+            new_urlpatterns = patterns('',
+                url(r'^(.+)/clone/$',
+                    self.admin_site.admin_view(self.clone_view),
+                    name=url_name)
+            )
+        else:
+            new_urlpatterns = patterns('',
+                url(r'^(.+)/change/clone/$',
+                    self.admin_site.admin_view(self.clone_view),
+                    name=url_name)
+            )
+
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
 
         return new_urlpatterns + original_urlpatterns
