@@ -90,7 +90,10 @@ class ClonableModelAdminTests(WebTest):
 
     def test_clone_view_url_name(self):
         post_id = self.post.id
-        expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
+        if django.VERSION[1] < 9:
+            expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
+        else:
+            expected_url = '/admin/posts/post/{0}/change/clone/'.format(post_id)
 
         assert reverse('admin:posts_post_clone', args=(post_id,)) == expected_url
 
