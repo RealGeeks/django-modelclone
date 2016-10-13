@@ -1,4 +1,5 @@
 import shutil
+import urlparse
 
 import django
 from django.contrib.auth.models import User
@@ -299,7 +300,9 @@ class ClonableModelAdminTests(WebTest):
         new_id = Post.objects.latest('id').id
 
         assert 302 == response.status_code
-        assert reverse('admin:posts_post_change', args=(new_id,)) == response['Location']
+
+        loc = urlparse.urlparse(response['Location'])
+        assert reverse('admin:posts_post_change', args=(new_id,)) == loc.path
 
 
     # clone with images and files
