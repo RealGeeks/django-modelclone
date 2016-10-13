@@ -5,7 +5,7 @@ try:
 except ImportError:
     # django < 1.7
     from django.contrib.admin.util import unquote
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_lazy as lazy
@@ -46,18 +46,11 @@ class ClonableModelAdmin(ModelAdmin):
             self.model._meta.app_label,
             getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
 
-        if VERSION[1] < 9:
-            new_urlpatterns = patterns('',
-                url(r'^(.+)/clone/$',
-                    self.admin_site.admin_view(self.clone_view),
-                    name=url_name)
-            )
-        else:
-            new_urlpatterns = patterns('',
-                url(r'^(.+)/change/clone/$',
-                    self.admin_site.admin_view(self.clone_view),
-                    name=url_name)
-            )
+        new_urlpatterns = [
+            url(r'^(.+)/change/clone/$',
+                self.admin_site.admin_view(self.clone_view),
+                name=url_name)
+        ]
 
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
 
@@ -141,13 +134,7 @@ class ClonableModelAdmin(ModelAdmin):
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
                 initial = []
 
-                # Django 1.8 Patch
-                if hasattr(inline, 'queryset'):
-                    get_queryset = inline.queryset
-                else:
-                    get_queryset = inline.get_queryset
-
-                queryset = get_queryset(request).filter(
+                queryset = inline.get_queryset(request).filter(
                     **{FormSet.fk.name: original_obj})
                 for obj in queryset:
                     initial.append(model_to_dict(obj, exclude=[obj._meta.pk.name,

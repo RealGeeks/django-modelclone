@@ -1,7 +1,6 @@
 import os.path
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = ()
 MANAGERS = ADMINS
@@ -34,10 +33,26 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 SECRET_KEY = '8bz7r&amp;h5oy7p&amp;mmb@7d776)zch^miyhgk=tzcdc2s#gtq_ob*-'
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -47,9 +62,6 @@ MIDDLEWARE_CLASSES = (
 )
 ROOT_URLCONF = 'sampleproject.urls'
 WSGI_APPLICATION = 'sampleproject.wsgi.application'
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
