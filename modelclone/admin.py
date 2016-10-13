@@ -45,11 +45,20 @@ class ClonableModelAdmin(ModelAdmin):
         url_name = '{0}_{1}_clone'.format(
             self.model._meta.app_label,
             getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
-        new_urlpatterns = patterns('',
-            url(r'^(.+)/clone/$',
-                self.admin_site.admin_view(self.clone_view),
-                name=url_name)
-        )
+
+        if VERSION[1] < 9:
+            new_urlpatterns = patterns('',
+                url(r'^(.+)/clone/$',
+                    self.admin_site.admin_view(self.clone_view),
+                    name=url_name)
+            )
+        else:
+            new_urlpatterns = patterns('',
+                url(r'^(.+)/change/clone/$',
+                    self.admin_site.admin_view(self.clone_view),
+                    name=url_name)
+            )
+
         original_urlpatterns = super(ClonableModelAdmin, self).get_urls()
 
         return new_urlpatterns + original_urlpatterns
@@ -61,6 +70,13 @@ class ClonableModelAdmin(ModelAdmin):
             'include_clone_link': True,
         })
         return super(ClonableModelAdmin, self).change_view(request, object_id, form_url, extra_context)
+
+    def get_formsets(self, request):
+        try:
+            return super(ClonableModelAdmin, self).get_formsets(request)
+        except AttributeError:
+            # ModelAdmin.get_formsets has been removed in Django 1.9
+            return (f[0] for f in super(ClonableModelAdmin, self).get_formsets_with_inlines(request))
 
     def clone_view(self, request, object_id, form_url='', extra_context=None):
         opts = self.model._meta
@@ -114,7 +130,11 @@ class ClonableModelAdmin(ModelAdmin):
 
                 self.save_model(request, new_object, form, False)
                 self.save_related(request, form, formsets, False)
-                self.log_addition(request, new_object)
+                try:
+                    self.log_addition(request, new_object)
+                except TypeError:
+                    # In Django 1.9 we need one more param
+                    self.log_addition(request, new_object, "Cloned object")
 
                 if VERSION[1] <= 4:
                     # Until Django 1.4 giving %s in the url would be replaced with
@@ -185,11 +205,12 @@ class ClonableModelAdmin(ModelAdmin):
 
 
         title = u'{0} {1}'.format(self.clone_verbose_name, opts.verbose_name)
+
         context = {
             'title': title,
             'original': title,
             'adminform': admin_form,
-            'is_popup': "_popup" in request.REQUEST,
+            'is_popup': "_popup" in getattr(request, 'REQUEST', request.GET),
             'show_delete': False,
             'media': media,
             'inline_admin_formsets': inline_admin_formsets,

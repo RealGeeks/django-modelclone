@@ -1,4 +1,5 @@
 import shutil
+import urlparse
 
 import django
 from django.contrib.auth.models import User
@@ -58,21 +59,16 @@ class ClonableModelAdminTests(WebTest):
         )
         self.post_with_tags.tags.add(self.tag1)
 
-        self.post_url = '/admin/posts/post/{0}/clone/'.format(
-            self.post.id)
-        self.post_with_comments_url = '/admin/posts/post/{0}/clone/'.format(
-            self.post_with_comments.id)
-        self.post_with_tags_url = '/admin/posts/post/{0}/clone/'.format(
-            self.post_with_tags.id)
+        self.post_url = reverse('admin:posts_post_clone', args=(self.post.id,))
+        self.post_with_comments_url = reverse('admin:posts_post_clone', args=(self.post_with_comments.id,))
+        self.post_with_tags_url = reverse('admin:posts_post_clone', args=(self.post_with_tags.id,))
 
         self.multimedia = Multimedia.objects.create(
             title = 'Jason Polakow',
             image = File(open('tests/files/img.jpg')),
             document = File(open('tests/files/file.txt')),
         )
-        self.multimedia_url = '/admin/posts/multimedia/{0}/clone/'.format(
-            self.multimedia.id)
-
+        self.multimedia_url = reverse('admin:posts_multimedia_clone', args=(self.multimedia.id,))
 
     def test_clone_view_is_wrapped_as_admin_view(self):
         model = mock.Mock()
@@ -90,7 +86,10 @@ class ClonableModelAdminTests(WebTest):
 
     def test_clone_view_url_name(self):
         post_id = self.post.id
-        expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
+        if django.VERSION[1] < 9:
+            expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
+        else:
+            expected_url = '/admin/posts/post/{0}/change/clone/'.format(post_id)
 
         assert reverse('admin:posts_post_clone', args=(post_id,)) == expected_url
 
@@ -163,7 +162,7 @@ class ClonableModelAdminTests(WebTest):
 
 
     def test_clone_should_return_404_if_object_does_not_exist(self):
-        response = self.app.get('/admin/posts/post/999999999/clone/', user='admin',
+        response = self.app.get(reverse('admin:posts_post_clone', args=(999999999,)), user='admin',
                                 expect_errors=True)
         assert 404 == response.status_code
 
@@ -301,7 +300,9 @@ class ClonableModelAdminTests(WebTest):
         new_id = Post.objects.latest('id').id
 
         assert 302 == response.status_code
-        assert 'http://testserver/admin/posts/post/{0}/'.format(new_id) == response['Location']
+
+        loc = urlparse.urlparse(response['Location'])
+        assert reverse('admin:posts_post_change', args=(new_id,)) == loc.path
 
 
     # clone with images and files
