@@ -43,8 +43,7 @@ side effects.
 ## Requirements
 
 * Python 2.7
-* Django 1.8 and 1.9
-* Django 1.10 support coming soon
+* Django 1.8, 1.9, or 1.10
 
 See `tox.ini`
 
