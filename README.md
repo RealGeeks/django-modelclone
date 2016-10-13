@@ -42,7 +42,13 @@ side effects.
 
 ## Requirements
 
-Tested with Python 2.6 and 2.7. Django 1.4 up to 1.7. See `tox.ini`.
+* Python 2.7
+* Django 1.8 and 1.9
+* Django 1.10 support coming soon
+
+See `tox.ini`
+
+Pull requests welcome for Python 3 support
 
 ## Hacking
 
