@@ -1,3 +1,5 @@
+import os
+
 from django import VERSION
 from django.contrib.admin import ModelAdmin, helpers
 try:
@@ -96,7 +98,30 @@ class ClonableModelAdmin(ModelAdmin):
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
-                formset = FormSet(data=request.POST, files=request.FILES,
+
+                request_files = request.FILES
+
+                # allows to duplicate files in inline forms
+                filter_params = {'%s__pk' % original_obj.__class__.__name__.lower(): original_obj.pk}
+                objects_with_files = inline.model.objects.filter(**filter_params)
+                if objects_with_files:
+                    first_document = objects_with_files[0]
+                    for name in vars(first_document):
+                        field = getattr(first_document, name)
+                        if isinstance(field, FieldFile):
+                            for n in range(0, len(objects_with_files)):
+                                file_field_name = '{0}s-{1}-{0}'.format(name, n)
+                                file_field = getattr(objects_with_files[n], name)
+                                file = file_field.file
+                                # truncate so that the path is less than 100 characters (we get an error if it's more)
+                                if len(file.name) > 100:
+                                    fname, extension = os.path.splitext(file.name)
+                                    extension_length = len(extension)
+                                    fname = fname[:100 - extension_length]
+                                    file.name = '%s%s' % (fname, extension)
+                                request_files[file_field_name] = file
+
+                formset = FormSet(data=request.POST, files=request_files,
                                   instance=new_object,
                                   save_as_new="_saveasnew" in request.POST,   # ????
                                   prefix=prefix)
