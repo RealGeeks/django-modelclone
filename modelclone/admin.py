@@ -12,13 +12,14 @@ from django.utils.translation import ugettext_lazy as lazy
 from django.utils.html import escape
 from django.forms.models import model_to_dict
 from django.forms.formsets import all_valid
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.db.models.fields.files import FieldFile
 
 
 __all__ = 'ClonableModelAdmin',
+
 
 class ClonableModelAdmin(ModelAdmin):
 
@@ -47,12 +48,11 @@ class ClonableModelAdmin(ModelAdmin):
             getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
 
         if VERSION[1] < 9:
-            from django.conf.urls import patterns
-            new_urlpatterns = patterns('',
+            new_urlpatterns = [
+                '',
                 url(r'^(.+)/clone/$',
                     self.admin_site.admin_view(self.clone_view),
-                    name=url_name)
-                )
+                    name=url_name)]
         else:
             new_urlpatterns = [
                 url(r'^(.+)/change/clone/$',
@@ -178,7 +178,6 @@ class ClonableModelAdmin(ModelAdmin):
             inline_admin_formsets.append(inline_admin_formset)
             media = media + inline_admin_formset.media
 
-
         title = u'{0} {1}'.format(self.clone_verbose_name, opts.verbose_name)
 
         context = {
@@ -194,7 +193,8 @@ class ClonableModelAdmin(ModelAdmin):
         }
         context.update(extra_context or {})
 
-        return self.render_change_form(request,
+        return self.render_change_form(
+            request,
             context,
             form_url=form_url,
             change=False
@@ -226,6 +226,7 @@ class ClonableModelAdmin(ModelAdmin):
         This method returns the modified ``fields_list``.
         """
         return fields_list
+
 
 class InlineAdminFormSetFakeOriginal(helpers.InlineAdminFormSet):
 
