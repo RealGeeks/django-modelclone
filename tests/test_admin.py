@@ -1,5 +1,8 @@
 import shutil
-import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import django
 from django.http import HttpResponse
@@ -70,10 +73,16 @@ class ClonableModelAdminTests(WebTest):
 
         self.multimedia = Multimedia.objects.create(
             title = 'Jason Polakow',
-            image = File(open('tests/files/img.jpg')),
+            image = File(open('tests/files/img.jpg', 'rb')),
             document = File(open('tests/files/file.txt')),
         )
         self.multimedia_url = reverse('admin:posts_multimedia_clone', args=(self.multimedia.id,))
+
+        self._patch_settings()
+        self.renew_app()
+
+    def tearDown(self):
+        self._unpatch_settings()
 
     def test_clone_view_is_wrapped_as_admin_view(self):
         model = mock.Mock()
@@ -89,7 +98,7 @@ class ClonableModelAdminTests(WebTest):
 
     def test_clone_view_url_name(self):
         post_id = self.post.id
-        if django.VERSION[1] < 9:
+        if django.VERSION[0] == 1 and django.VERSION[1] < 9:
             expected_url = '/admin/posts/post/{0}/clone/'.format(post_id)
         else:
             expected_url = '/admin/posts/post/{0}/change/clone/'.format(post_id)
@@ -285,7 +294,7 @@ class ClonableModelAdminTests(WebTest):
         response.form.set('tags', [self.tag2.id])
         response = response.form.submit()
 
-        assert 'Please correct the error below' in response.content
+        assert b'Please correct the error below' in response.content
 
         tag1_option = select_element(response, 'select[name=tags] option[value="{id}"]'
             .format(id=self.tag1.id))
@@ -304,7 +313,7 @@ class ClonableModelAdminTests(WebTest):
 
         assert 302 == response.status_code
 
-        loc = urlparse.urlparse(response['Location'])
+        loc = urlparse(response['Location'])
         assert reverse('admin:posts_post_change', args=(new_id,)) == loc.path
 
 
@@ -312,11 +321,12 @@ class ClonableModelAdminTests(WebTest):
 
     def test_clone_should_keep_file_path_from_original_object(self):
         response = self.app.get(self.multimedia_url, user='admin')
+        print(response.content)
 
         image = select_element(response, '.field-image p.file-upload a')
         document = select_element(response, '.field-document p.file-upload a')
 
-        if django.VERSION[1] == 10:
+        if django.VERSION[0] > 1 or django.VERSION[1] == 10:
             assert '/media/images/tests/files/img.jpg' == image.get('href')
             assert '/media/documents/tests/files/file.txt' == document.get('href')
         else:
@@ -329,7 +339,7 @@ class ClonableModelAdminTests(WebTest):
 
         multimedia = Multimedia.objects.latest('id')
 
-        if django.VERSION[1] == 10:
+        if django.VERSION[0] > 1 or django.VERSION[1] == 10:
             assert 'images/tests/files/img.jpg' == str(multimedia.image)
             assert 'documents/tests/files/file.txt' == str(multimedia.document)
         else:

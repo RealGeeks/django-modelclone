@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -50,6 +51,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='comment',
             name='post',
-            field=models.ForeignKey(to='posts.Post'),
+            field=models.ForeignKey(to='posts.Post', on_delete=django.db.models.deletion.CASCADE),
         ),
     ]
