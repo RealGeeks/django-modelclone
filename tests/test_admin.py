@@ -5,7 +5,11 @@ import django
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.admin import site as default_admin_site
-from django.core.urlresolvers import reverse
+from django import VERSION
+if VERSION[0] < 2:
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.core.files import File
 from django.conf import settings
