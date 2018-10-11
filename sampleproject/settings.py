@@ -53,13 +53,26 @@ TEMPLATES = [
         },
     },
 ]
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
+from django import VERSION
+if VERSION[0] > 1 or (VERSION[0] == 1 and VERSION[1] >= 10):
+    MIDDLEWARE = [
+	'django.middleware.security.SecurityMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
+	'django.middleware.common.CommonMiddleware',
+	'django.middleware.csrf.CsrfViewMiddleware',
+	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'django.contrib.messages.middleware.MessageMiddleware',
+	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
+else:
+    MIDDLEWARE_CLASSES = (
+	'django.middleware.common.CommonMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
+	'django.middleware.csrf.CsrfViewMiddleware',
+	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'django.contrib.messages.middleware.MessageMiddleware',
+    )
+
 ROOT_URLCONF = 'sampleproject.urls'
 WSGI_APPLICATION = 'sampleproject.wsgi.application'
 
