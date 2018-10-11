@@ -49,7 +49,7 @@ class ClonableModelAdmin(ModelAdmin):
             self.model._meta.app_label,
             getattr(self.model._meta, 'module_name', getattr(self.model._meta, 'model_name', '')))
 
-        if VERSION[1] < 9:
+        if VERSION[0] == 1 and VERSION[1] < 9:
             from django.conf.urls import patterns
             new_urlpatterns = patterns('',
                 url(r'^(.+)/clone/$',
