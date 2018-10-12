@@ -1,7 +1,5 @@
 # django-modelclone
 
-[![CircleCI](https://circleci.com/gh/RealGeeks/django-modelclone.svg?style=svg)](https://circleci.com/gh/RealGeeks/django-modelclone)
-
 Allows users to duplicate a model in admin.
 
 ## Installation
