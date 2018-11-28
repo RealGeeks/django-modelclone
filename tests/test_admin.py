@@ -71,11 +71,18 @@ class ClonableModelAdminTests(WebTest):
         self.post_with_comments_url = reverse('admin:posts_post_clone', args=(self.post_with_comments.id,))
         self.post_with_tags_url = reverse('admin:posts_post_clone', args=(self.post_with_tags.id,))
 
+        self.post_with_multimedia = Post.objects.create(
+            title = 'Pretty image',
+            content = 'Look!',
+        )
+
         self.multimedia = Multimedia.objects.create(
+            post = self.post_with_multimedia,
             title = 'Jason Polakow',
             image = File(open('tests/files/img.jpg', 'rb')),
             document = File(open('tests/files/file.txt')),
         )
+        self.post_with_multimedia_url = reverse('admin:posts_post_clone', args=(self.post_with_multimedia.id,))
         self.multimedia_url = reverse('admin:posts_multimedia_clone', args=(self.multimedia.id,))
 
         self._patch_settings()
@@ -259,6 +266,29 @@ class ClonableModelAdminTests(WebTest):
         assert 2 == post1.comment_set.count()
         assert 2 == post2.comment_set.count()
 
+
+    def test_clone_should_create_new_object_with_media_inlines_on_POST(self):
+        response = self.app.get(self.post_with_multimedia_url, user='admin')
+        response.form.submit()
+
+        post1 = Post.objects.get(title=self.post_with_multimedia.title)
+        post2 = Post.objects.get(title=self.post_with_multimedia.title + ' (duplicate)')
+
+        assert 1 == post1.multimedia_set.count()
+        assert 1 == post2.multimedia_set.count()
+        assert post1.multimedia_set.first().image == post2.multimedia_set.first().image
+        assert post1.multimedia_set.first().document == post2.multimedia_set.first().document
+
+    def test_clone_should_media_inlines_overrides_on_POST(self):
+        response = self.app.get(self.post_with_multimedia_url, user='admin')
+        response.form['multimedia_set-0-image'] = Upload('tests/files/img-2.jpg')
+        response.form['multimedia_set-0-document'] = Upload('tests/files/file-2.txt')
+        response.form.submit()
+
+        post2 = Post.objects.get(title=self.post_with_multimedia.title + ' (duplicate)')
+
+        assert post2.multimedia_set.first().image.name == 'images/img-2.jpg'
+        assert post2.multimedia_set.first().document.name == 'documents/file-2.txt'
 
     def test_clone_should_ignore_initial_data_of_inline_form_if_delete_is_checked(self):
         response = self.app.get(self.post_with_comments_url, user='admin')

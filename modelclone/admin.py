@@ -18,7 +18,7 @@ else:
     from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
-from django.db.models.fields.files import FieldFile
+from django.db.models.fields.files import FieldFile, FileField
 
 
 __all__ = 'ClonableModelAdmin',
@@ -107,7 +107,18 @@ class ClonableModelAdmin(ModelAdmin):
                 prefixes[prefix] = prefixes.get(prefix, 0) + 1
                 if prefixes[prefix] != 1 or not prefix:
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
-                formset = FormSet(data=request.POST, files=request.FILES,
+
+                request_files = request.FILES
+                filter_params = {'%s__pk' % original_obj.__class__.__name__.lower(): original_obj.pk}
+                inlined_objs = inline.model.objects.filter(**filter_params)
+                for n, inlined_obj in enumerate(inlined_objs.all()):
+                    for field in inlined_obj._meta.fields:
+                        if isinstance(field, FileField) and field not in request_files:
+                            value = field.value_from_object(inlined_obj)
+                            file_field_name = '{}-{}-{}'.format(prefix, n, field.name)
+                            request_files.setdefault(file_field_name, value)
+
+                formset = FormSet(data=request.POST, files=request_files,
                                   instance=new_object,
                                   save_as_new="_saveasnew" in request.POST,   # ????
                                   prefix=prefix)

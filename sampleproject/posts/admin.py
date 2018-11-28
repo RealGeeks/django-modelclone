@@ -9,8 +9,11 @@ class CommentInline(admin.StackedInline):
     model = Comment
     extra = 2
 
+class MultimediaInline(admin.TabularInline):
+    model = Multimedia
+
 class PostAdmin(ClonableModelAdmin):
-    inlines = CommentInline,
+    inlines = (CommentInline, MultimediaInline)
     clone_verbose_name = 'Clone it!'
 
     list_display = '__unicode__', 'clone_link'

@@ -36,6 +36,7 @@ class Tag(models.Model):
     __str__ = __unicode__
 
 class Multimedia(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
     title = models.CharField(max_length=256)
     image = models.ImageField(upload_to='images', blank=True)
     document = models.FileField(upload_to='documents', blank=True)
