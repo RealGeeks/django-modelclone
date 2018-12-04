@@ -53,4 +53,9 @@ class Migration(migrations.Migration):
             name='post',
             field=models.ForeignKey(to='posts.Post', on_delete=django.db.models.deletion.CASCADE),
         ),
+        migrations.AddField(
+            model_name='multimedia',
+            name='post',
+            field=models.ForeignKey(to='posts.Post', on_delete=django.db.models.deletion.CASCADE),
+        ),
     ]
