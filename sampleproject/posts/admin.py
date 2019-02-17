@@ -26,6 +26,8 @@ class PostAdmin(ClonableModelAdmin):
         # This is a silly override just to demonstrate the feature and to be able to test it.
         if related_name == 'comment_set':
             fields_list = [comment for comment in fields_list if comment['author'] != 'do-not-clone']
+        elif related_name == 'multimedia_set':
+            fields_list = [m for m in fields_list if m['title'] != 'do-not-clone']
         return fields_list
 
 class MultimediaAdmin(ClonableModelAdmin):
