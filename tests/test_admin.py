@@ -234,6 +234,22 @@ class ClonableModelAdminTests(WebTest):
         response = self.app.get(self.post_with_comments_url, user='admin')
         assert_input(response, name='comment_set-2-author', value='')
 
+    def test_clone_should_honor_tweaked_inline_file_fields(self):
+        # File fields require special treatment at POST time and there used to
+        # be a bug where ignore inlines involving files wouldn't be honored at
+        # POST time.
+        self.multimedia.title = 'do-not-clone'
+        self.multimedia.save()
+        response = self.app.get(self.post_with_multimedia_url, user='admin')
+        response.form.submit()
+
+        post1 = Post.objects.get(title=self.post_with_multimedia.title)
+        post2 = Post.objects.get(title=self.post_with_multimedia.title + ' (duplicate)')
+
+        assert 1 == post1.multimedia_set.count()
+        # not cloned
+        assert 0 == post2.multimedia_set.count()
+
     def test_clone_with_inlines_should_display_the_necessary_number_of_forms(self):
         extra = 2   # CommentInline.extra on sampleproject/posts
 

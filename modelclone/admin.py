@@ -18,7 +18,7 @@ else:
     from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
-from django.db.models.fields.files import FieldFile, FileField
+from django.db.models.fields.files import FieldFile
 
 
 __all__ = 'ClonableModelAdmin',
@@ -75,6 +75,23 @@ class ClonableModelAdmin(ModelAdmin):
         })
         return super(ClonableModelAdmin, self).change_view(request, object_id, form_url, extra_context)
 
+    def get_formsets_with_inlines_prefixes_initials(self, request, original_obj):
+        prefixes = {}
+        for FormSet, inline in self.get_formsets_with_inlines(request):
+            prefix = FormSet.get_default_prefix()
+            prefixes[prefix] = prefixes.get(prefix, 0) + 1
+            if prefixes[prefix] != 1 or not prefix:
+                prefix = "%s-%s" % (prefix, prefixes[prefix])
+
+            queryset = inline.get_queryset(request).filter(
+                **{FormSet.fk.name: original_obj})
+            initial = []
+            for obj in queryset:
+                d = model_to_dict(obj, exclude=[obj._meta.pk.name, FormSet.fk.name])
+                initial.append(d)
+            initial = self.tweak_cloned_inline_fields(prefix, initial)
+            yield FormSet, inline, prefix, initial
+
     def clone_view(self, request, object_id, form_url='', extra_context=None):
         opts = self.model._meta
 
@@ -101,21 +118,13 @@ class ClonableModelAdmin(ModelAdmin):
                 new_object = self.model()
                 form_validated = False
 
-            prefixes = {}
-            for FormSet, inline in self.get_formsets_with_inlines(request):
-                prefix = FormSet.get_default_prefix()
-                prefixes[prefix] = prefixes.get(prefix, 0) + 1
-                if prefixes[prefix] != 1 or not prefix:
-                    prefix = "%s-%s" % (prefix, prefixes[prefix])
-
+            inline_data = self.get_formsets_with_inlines_prefixes_initials(request, original_obj)
+            for FormSet, inline, prefix, initial in inline_data:
                 request_files = request.FILES
-                filter_params = {'%s__pk' % original_obj.__class__.__name__.lower(): original_obj.pk}
-                inlined_objs = inline.model.objects.filter(**filter_params)
-                for n, inlined_obj in enumerate(inlined_objs.all()):
-                    for field in inlined_obj._meta.fields:
-                        if isinstance(field, FileField) and field not in request_files:
-                            value = field.value_from_object(inlined_obj)
-                            file_field_name = '{}-{}-{}'.format(prefix, n, field.name)
+                for n, data in enumerate(initial):
+                    for key, value in data.items():
+                        if isinstance(value, FieldFile):
+                            file_field_name = '{}-{}-{}'.format(prefix, n, key)
                             request_files.setdefault(file_field_name, value)
 
                 formset = FormSet(data=request.POST, files=request_files,
@@ -148,29 +157,13 @@ class ClonableModelAdmin(ModelAdmin):
             initial = self.tweak_cloned_fields(initial)
             form = ModelForm(initial=initial)
 
-            prefixes = {}
-            for FormSet, inline in self.get_formsets_with_inlines(request):
-                prefix = FormSet.get_default_prefix()
-                prefixes[prefix] = prefixes.get(prefix, 0) + 1
-                if prefixes[prefix] != 1 or not prefix:
-                    prefix = "%s-%s" % (prefix, prefixes[prefix])
-                initial = []
-
-                queryset = inline.get_queryset(request).filter(
-                    **{FormSet.fk.name: original_obj})
-                for obj in queryset:
-                    initial.append(model_to_dict(obj, exclude=[obj._meta.pk.name,
-                                                               FormSet.fk.name]))
-                initial = self.tweak_cloned_inline_fields(prefix, initial)
+            inline_data = self.get_formsets_with_inlines_prefixes_initials(request, original_obj)
+            for FormSet, inline, prefix, initial in inline_data:
                 formset = FormSet(prefix=prefix, initial=initial)
                 # Since there is no way to customize the `extra` in the constructor,
                 # construct the forms again...
                 # most of this view is a hack, but this is the ugliest one
                 formset.extra = len(initial) + formset.extra
-                # _construct_forms() was removed on django 1.6
-                # see https://github.com/django/django/commit/ef79582e8630cb3c119caed52130c9671188addd
-                if hasattr(formset, '_construct_forms'):
-                    formset._construct_forms()
                 formsets.append(formset)
 
         admin_form = helpers.AdminForm(
