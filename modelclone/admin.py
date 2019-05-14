@@ -109,7 +109,7 @@ class ClonableModelAdmin(ModelAdmin):
                     prefix = "%s-%s" % (prefix, prefixes[prefix])
 
                 request_files = request.FILES
-                filter_params = {'%s__pk' % original_obj.__class__.__name__.lower(): original_obj.pk}
+                filter_params = {'%s__pk' % FormSet.fk.name: original_obj.pk}
                 inlined_objs = inline.model.objects.filter(**filter_params)
                 for n, inlined_obj in enumerate(inlined_objs.all()):
                     for field in inlined_obj._meta.fields:
