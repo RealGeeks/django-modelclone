@@ -1,0 +1,8 @@
+pytest-django
+webtest
+django-webtest
+pytest
+lxml
+cssselect
+mock
+Pillow
