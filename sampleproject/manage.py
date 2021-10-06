@@ -2,7 +2,7 @@
 import os
 import sys
 
-print sys.argv
+print(sys.argv)
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sampleproject.settings")
 
